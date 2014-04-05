@@ -26,7 +26,7 @@ public class Level {
     protected int mouseLX, mouseLY; // Mouse coordinates used on level
 
     protected ArrayList<CellMaster> masters;
-    protected ArrayList<Updatable> updatable;
+    protected ArrayList<Owner> owners;
 
     protected Cell[] cells;
 
@@ -41,7 +41,7 @@ public class Level {
         this.debug = debug;
 
         masters = new ArrayList<CellMaster>();
-        updatable = new ArrayList<Updatable>();
+        owners = new ArrayList<Owner>();
     }
 
     public boolean canSetCell(int x, int y) {
@@ -60,11 +60,12 @@ public class Level {
         cells[cell.getX() + cell.getY() * width] = cell;
     }
 
-    public void add(Updatable u) {
-        updatable.add(u);
-        if (u instanceof CellMaster) {
-            masters.add((CellMaster) u);
-        }
+    public void add(CellMaster u) {
+        masters.add(u);
+    }
+
+    public void add(Owner u) {
+        owners.add(u);
     }
 
     public int getCellSize() {
@@ -92,7 +93,7 @@ public class Level {
     }
 
     public void changeZoom(int n) {
-        if (cellSize * (zoom + n * 0.1) < 1) return; // Returning if zoomed too much
+        if (cellSize * (zoom + n * 0.1d) < 1) return; // Returning if zoomed too much
 
         zoom += n * 0.1d;
 

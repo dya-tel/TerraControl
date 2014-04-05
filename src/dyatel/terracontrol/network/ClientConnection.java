@@ -5,7 +5,6 @@ import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.Owner;
 import dyatel.terracontrol.util.Debug;
-import dyatel.terracontrol.util.Util;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -49,7 +48,7 @@ public class ClientConnection extends Connection {
 
     protected void process(DatagramPacket packet) {
         String message = new String(packet.getData()).trim();
-        debug.println(message);
+        //debug.println(message);
         if (message.startsWith("/da/")) {
             String[] dataR = message.substring(4).split("x");
             debug.println("Connected!");
@@ -150,7 +149,6 @@ public class ClientConnection extends Connection {
 
                 // Requesting masters
                 while (receivedMasters < masters && running) {
-                    debug.println("receiving masters");
                     try {
                         if (receivedCells + perRequest < masters)
                             send("/ma/" + receivedMasters + "x" + (receivedMasters + perRequest), address, port);
@@ -190,7 +188,7 @@ public class ClientConnection extends Connection {
         final Owner owner = ((ClientLevel) level).getOwner();
         final ClientLevel level = (ClientLevel) this.level;
         if (owner.getColor() == color) return;
-        turnThread = new Thread() {
+        turnThread = new Thread("TurnManager") {
             public void run() {
                 if (color != 0) {
                     // Sending our turn
@@ -200,7 +198,7 @@ public class ClientConnection extends Connection {
                         send("/tu/" + color, address, port);
 
                         try {
-                            sleep(1000);
+                            sleep(100);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -213,7 +211,7 @@ public class ClientConnection extends Connection {
                     send("/te/", address, port);
 
                     try {
-                        sleep(1000);
+                        sleep(100);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

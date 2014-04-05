@@ -2,7 +2,10 @@ package dyatel.terracontrol.network;
 
 import dyatel.terracontrol.Client;
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.level.*;
+import dyatel.terracontrol.level.Cell;
+import dyatel.terracontrol.level.CellMaster;
+import dyatel.terracontrol.level.Level;
+import dyatel.terracontrol.level.Owner;
 import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.Debug;
 
@@ -19,9 +22,9 @@ public class ClientLevel extends Level {
     private Owner enemy;
 
     private boolean canMakeATurn;
-    private int state = -1; // -1 - waiting, 0 - making moves, 1 - won, 2 - lost, 3 - draw
+    private int state = -1; // -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
-    private Cell currentCell;
+    private Cell currentCell; // Cell player is pointing on
     public int currentColor;
 
     public ClientLevel(int cellSize, Client client) {
@@ -94,9 +97,11 @@ public class ClientLevel extends Level {
         if (keyboard.getKeys()[13]) yOff += scrollRate;
 
         if (xOff < 0) xOff = 0;
-        if (xOff + client.getWidth() > width * (getCellSize() + 1) - 1) xOff = Math.max(width * (getCellSize() + 1) - 1 - client.getWidth(), 0);
+        if (xOff + client.getWidth() > width * (getCellSize() + 1) - 1)
+            xOff = Math.max(width * (getCellSize() + 1) - 1 - client.getWidth(), 0);
         if (yOff < 0) yOff = 0;
-        if (yOff + client.getFieldHeight() > height * (getCellSize() + 1) - 1) yOff = Math.max(height * (getCellSize() + 1) - 1 - client.getFieldHeight(), 0);
+        if (yOff + client.getFieldHeight() > height * (getCellSize() + 1) - 1)
+            yOff = Math.max(height * (getCellSize() + 1) - 1 - client.getFieldHeight(), 0);
 
         // Printing current state
         switch (state) {
@@ -129,37 +134,26 @@ public class ClientLevel extends Level {
         }
         client.statusBar[4] = String.valueOf(owner.getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
 
-        // Updating level
-        if (++timer >= delay) {
-            for (int i = 0; i < updatable.size(); i++) {
-                Updatable u = updatable.get(i);
-                // Removing nulls
-                if (u == null) {
-                    updatable.remove(i);
-                    i--;
-                    continue;
-                }
-                // Removing removed
-                if (u.isRemoved()) {
-                    updatable.remove(i);
-                    if (u instanceof CellMaster) {
-                        masters.remove(u);
-                    }
-                    i--;
-                    continue;
-                }
-
-                updatable.get(i).update();
-            }
-
-            timer = 0;
-        }
-
         // Making a turn if needed
         if (!canMakeATurn || state != 0) return;
         if (mouse.isClicked() && availableCells > 0) {
             connection.turn(currentColor);
         }
+    }
+
+    public void ready() {
+        // Updating all masters to find borders and etc
+        for (int i = 0; i < masters.size(); i++) {
+            CellMaster master = masters.get(i);
+            if (master.isRemoved() || master == null) {
+                masters.remove(master);
+                i--;
+                continue;
+            }
+            master.update();
+        }
+
+        ready = true;
     }
 
     public Owner getOwner() {
@@ -181,21 +175,19 @@ public class ClientLevel extends Level {
     public void render(Screen screen) {
         if (!initialized) return;
         screen.setOffset(xOff, yOff);
-        for (CellMaster master : masters) {
-            ArrayList<Cell> cells = master.getCells(); // Getting cells to render
+        for (int i = 0; i < cells.length; i++) {
+            if (cells[i] == null) return; // Return if there is nothing to render
+            CellMaster master = cells[i].getMaster();
+
+            // Calculating color
             int color = Color.subtract(master.getColor(), 0xaa, 0xaa, 0xaa);
             if (currentCell == null) {
                 color = master.getColor();
-            } else {
-                if (master.getOwner() == owner || (master.getOwner() != enemy && owner.getMaster().isNeighbor(master) && master.getColor() == currentColor)) {
-                    color = currentColor;
-                }
+            } else if (master.getOwner() == owner || (master.getOwner() != enemy && owner.getMaster().isNeighbor(master) && master.getColor() == currentColor)) {
+                color = currentColor;
             }
 
-            // Rendering all cells
-            for (Cell cell : cells) {
-                cell.render(screen, color);
-            }
+            cells[i].render(screen, color); // Rendering
         }
     }
 

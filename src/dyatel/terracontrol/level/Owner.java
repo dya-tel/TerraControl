@@ -6,10 +6,6 @@ public class Owner implements Updatable {
 
     private int id;
 
-    private int color;
-
-    private boolean failed = false;
-
     private boolean removed = false;
 
     public Owner(int x, int y, int id, Level level) {
@@ -23,11 +19,9 @@ public class Owner implements Updatable {
             level.getDebug().println("Creating owner at master " + master);
             this.master = master;
             master.setOwner(this);
-            color = master.getColor();
             level.add(this);
         } else {
             level.getDebug().println("Failed creating owner " + this + " on master " + master + ": someone is already owning this master!");
-            failed = true;
         }
     }
 
@@ -40,23 +34,16 @@ public class Owner implements Updatable {
     }
 
     public void setColor(int color) {
-        this.color = color;
-        if (master != null) {
-            master.setColor(color);
-            master.update();
-        }
+        master.setColor(color);
+        update();
     }
 
     public int getColor() {
-        return color;
+        return master.getColor();
     }
 
     public int getID() {
         return id;
-    }
-
-    public boolean isFailed() {
-        return failed;
     }
 
     public void remove() {

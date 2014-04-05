@@ -5,7 +5,6 @@ import dyatel.terracontrol.Server;
 import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.Level;
-import dyatel.terracontrol.level.Updatable;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.Util;
 
@@ -53,19 +52,7 @@ public class ServerLevel extends Level {
                 if (gen == width * height) {
                     generated = true;
                 } else {
-                    for (int i = 0; i < masters.size(); i++) {
-                        CellMaster master = masters.get(i);
-                        // Removing removed
-                        if (master.isRemoved()) {
-                            updatable.remove(master);
-                            masters.remove(master);
-                            i--;
-                            continue;
-                        }
-                        // Generating level
-                        master.generate();
-                        master.update();
-                    }
+                    generate();
                 }
             }
             debug.println("Generated level in " + (System.currentTimeMillis() - start) + " ms");
@@ -132,15 +119,10 @@ public class ServerLevel extends Level {
             for (int i = 0; i < width * height; i++) {
                 if (cells[i] != null) gen++;
             }
-            if (gen != width * height)
+            if (gen != width * height) {
                 server.statusBar[0] = "Generated: " + gen * 100 / (width * height) + "%";
-            else {
+            } else {
                 server.statusBar[0] = "";
-                for (CellMaster master : masters) {
-                    master.levelGenerated();
-                    updatable.remove(master);
-                }
-
                 debug.println("Generated level!");
 
                 int tempC = 0;
@@ -163,34 +145,11 @@ public class ServerLevel extends Level {
 
         if (generated && captured) return;
 
-        // Ticking
-        if (++timer >= delay) {
-            for (int i = 0; i < updatable.size(); i++) {
-                Updatable u = updatable.get(i);
-                // Removing nulls
-                if (u == null) {
-                    updatable.remove(i);
-                    i--;
-                    continue;
-                }
-                // Removing removed
-                if (u.isRemoved()) {
-                    updatable.remove(i);
-                    if (u instanceof CellMaster) {
-                        masters.remove(u);
-                    }
-                    i--;
-                    continue;
-                }
-                // Generating level if needed
-                if (u instanceof CellMaster && !generated) {
-                    ((CellMaster) u).generate();
-                }
-
-                updatable.get(i).update();
-            }
-
-            timer = 0;
+        // Slow generation if needed
+        if (timer > 0) timer--;
+        if (!generated && timer == 0) {
+            generate();
+            timer = delay;
         }
 
         // Checking if level is captured
@@ -199,9 +158,23 @@ public class ServerLevel extends Level {
                 return;
             }
         }
-        debug.println("Captured level! Press \"space\" to reset it!");
+        debug.println("Captured level!");
         server.getConnection().gameOver();
         captured = true;
+    }
+
+    private void generate() {
+        for (int i = 0; i < masters.size(); i++) {
+            CellMaster master = masters.get(i);
+            // Removing removed
+            if (master.isRemoved()) {
+                masters.remove(master);
+                i--;
+                continue;
+            }
+            // Generating level
+            master.generate();
+        }
     }
 
     public void render(Screen screen) {
@@ -217,27 +190,3 @@ public class ServerLevel extends Level {
     }
 
 }
-
-        /*// Resetting level
-        if (keyboard.getKeys()[0] && keyDelay == -1) {
-            keyDelay = 20;
-
-            debug.println("*****RESET*****");
-
-            updatable.clear();
-            masters.clear();
-
-            for (int i = 0; i < cells.length; i++) {
-                cells[i] = null;
-            }
-
-            generated = false;
-            captured = false;
-            timer = 0;
-
-            System.gc();
-
-            addMasters();
-
-            return;
-        }*/

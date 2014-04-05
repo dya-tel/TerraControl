@@ -23,7 +23,7 @@ public class ServerConnection extends Connection {
         final String message = new String(packet.getData()).trim();
         final InetAddress address = packet.getAddress();
         final int port = packet.getPort();
-        debug.println(message);
+        //debug.println(message);
         if (message.startsWith("/co/")) {
             if (((ServerLevel) level).isGenerated()) {
                 debug.println("Connection request from " + packet.getAddress() + ":" + packet.getPort() + "");
@@ -114,12 +114,10 @@ public class ServerConnection extends Connection {
                 players[0].setTurn(color);
                 players[1].setTurn(0);
                 send("/to/" + color, players[0].getAddress(), players[0].getPort());
-                //send("/te/" + color, players[1].getAddress(), players[1].getPort());
             } else {
                 players[1].getOwner().setColor(color);
                 players[1].setTurn(color);
                 players[0].setTurn(0);
-                //send("/te/" + color, players[0].getAddress(), players[0].getPort());
                 send("/to/" + color, players[1].getAddress(), players[1].getPort());
             }
         } else if (message.startsWith("/te/")) {

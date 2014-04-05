@@ -43,7 +43,7 @@ public class CellMaster implements Updatable {
 
     public void merge(CellMaster master) {
         // Updating cell lists and setting new master
-        updateCellsLists();
+        updateCellLists();
         for (Cell cell : cells) {
             cell.setMaster(master);
         }
@@ -54,7 +54,7 @@ public class CellMaster implements Updatable {
         remove();
     }
 
-    public void updateCellsLists() {
+    private void updateCellLists() {
         // Return if nothing changed
         if (newCells.size() == 0) {
             return;
@@ -63,23 +63,19 @@ public class CellMaster implements Updatable {
         cells.addAll(newCells);
         newCells.clear();
 
-        // Recalculate borders
+        // Recalculating borders
         borderCells.clear();
         for (Cell cell : cells) {
             int smCells = 0;
 
-            if (level.getCell(cell.getX(), cell.getY() - 1) != null && level.getCell(cell.getX(), cell.getY() - 1).getMaster() == this) {
+            if (level.getCell(cell.getX(), cell.getY() - 1) != null && level.getCell(cell.getX(), cell.getY() - 1).getMaster() == this)
                 smCells++;
-            }
-            if (level.getCell(cell.getX() + 1, cell.getY()) != null && level.getCell(cell.getX() + 1, cell.getY()).getMaster() == this) {
+            if (level.getCell(cell.getX() + 1, cell.getY()) != null && level.getCell(cell.getX() + 1, cell.getY()).getMaster() == this)
                 smCells++;
-            }
-            if (level.getCell(cell.getX(), cell.getY() + 1) != null && level.getCell(cell.getX(), cell.getY() + 1).getMaster() == this) {
+            if (level.getCell(cell.getX(), cell.getY() + 1) != null && level.getCell(cell.getX(), cell.getY() + 1).getMaster() == this)
                 smCells++;
-            }
-            if (level.getCell(cell.getX() - 1, cell.getY()) != null && level.getCell(cell.getX() - 1, cell.getY()).getMaster() == this) {
+            if (level.getCell(cell.getX() - 1, cell.getY()) != null && level.getCell(cell.getX() - 1, cell.getY()).getMaster() == this)
                 smCells++;
-            }
 
             if (smCells < 4) {
                 borderCells.add(cell);
@@ -87,7 +83,7 @@ public class CellMaster implements Updatable {
         }
     }
 
-    public void updateNeighbors() {
+    private void updateNeighbors() {
         neighbors.clear();
         for (Cell cell : borderCells) {
             checkNeighbor(cell.getX(), cell.getY() - 1);
@@ -97,7 +93,7 @@ public class CellMaster implements Updatable {
         }
     }
 
-    public void checkNeighbor(int x, int y) {
+    private void checkNeighbor(int x, int y) {
         if (level.getCell(x, y) != null) {
             CellMaster neighbor = level.getCell(x, y).getMaster();
             if (neighbor != this && neighbor.getColor() == color && (neighbor.getOwner() == owner || neighbor.getOwner() == null)) {
@@ -110,30 +106,34 @@ public class CellMaster implements Updatable {
 
     public void generate() {
         for (Cell cell : borderCells) {
+            int x = cell.getX();
+            int y = cell.getY();
             switch (random.nextInt(4)) {
                 case 0:
-                    tryToAdd(cell.getX(), cell.getY() - 1);
+                    x -= 1;
                     break;
                 case 1:
-                    tryToAdd(cell.getX() + 1, cell.getY());
+                    y -= 1;
                     break;
                 case 2:
-                    tryToAdd(cell.getX(), cell.getY() + 1);
+                    x += 1;
                     break;
                 case 3:
-                    tryToAdd(cell.getX() - 1, cell.getY());
+                    y += 1;
                     break;
             }
+            tryToAdd(x, y);
         }
-    }
 
-    public void levelGenerated() {
-        //update();
+        update();
     }
 
     public void update() {
-        updateCellsLists();
-        updateNeighbors();
+        // Updating while updates change something
+        do {
+            updateCellLists();
+            updateNeighbors();
+        } while (newCells.size() > 0);
     }
 
     public void setColor(int color) {

@@ -19,8 +19,6 @@ public class ServerLevel extends Level {
     private boolean generated = false;
     private boolean captured = false;
 
-    private static int minMasters, maxMasters;
-
     public ServerLevel(int width, int height, int cellSize, boolean fastGeneration, Server server) {
         super(cellSize, Debug.serverDebug);
 
@@ -35,32 +33,33 @@ public class ServerLevel extends Level {
 
         cells = new Cell[width * height];
 
-        minMasters = width * height * 4 / 5;
-        maxMasters = width * height * 5 / 5;
-
-        addMasters();
-
         if (fastGeneration) {
             debug.println("Using fast generation...");
             long start = System.currentTimeMillis();
-            boolean generated = false;
-            while (!generated) {
-                int gen = 0;
-                for (int i = 0; i < width * height; i++) {
-                    if (cells[i] != null) gen++;
+            // Fill field with masters
+            for (int i = 0; i < cells.length; i++) {
+                new Cell(i % width, i / width, new CellMaster(this));
+            }
+            // Update masters
+            for (int i = 0; i < masters.size(); i++) {
+                CellMaster master = masters.get(i);
+                // Removing removed
+                if (master.isRemoved()) {
+                    masters.remove(master);
+                    i--;
+                    continue;
                 }
-                if (gen == width * height) {
-                    generated = true;
-                } else {
-                    generate();
-                }
+                // Updating master
+                master.update();
             }
             debug.println("Generated level in " + (System.currentTimeMillis() - start) + " ms");
+        } else {
+            addMasters(width * height * 4 / 5, width * height * 5 / 5); // Standard generation
         }
     }
 
-    private void addMasters() {
-        int masters = random.nextInt(maxMasters - minMasters + 1) + minMasters;
+    private void addMasters(int min, int max) {
+        int masters = random.nextInt(max - min + 1) + min;
         debug.println("Going to add " + masters + " masters");
         for (int i = 0; i < masters; i++) {
             int x = random.nextInt(width);
@@ -73,14 +72,15 @@ public class ServerLevel extends Level {
     }
 
     public void update() {
-        // Updating key delay
+        // Updating key delay, getting key state
         if (keyDelay > -1) keyDelay--;
+        boolean[] keys = keyboard.getKeys();
 
         // Updating mouse
-        mouseX = Math.min(mouse.getX() / (cellSize + 1), mouse.getX());
-        mouseY = Math.min(mouse.getY() / (cellSize + 1), mouse.getY());
-        mouseLX = Math.min((mouse.getX() + xOff) / (cellSize + 1), mouse.getX());
-        mouseLY = Math.min((mouse.getY() + yOff) / (cellSize + 1), mouse.getY());
+        mouseX = Math.min(mouse.getX() / (getCellSize() + 1), mouse.getX());
+        mouseY = Math.min(mouse.getY() / (getCellSize() + 1), mouse.getY());
+        mouseLX = Math.min((mouse.getX() + xOff) / (getCellSize() + 1), mouse.getX());
+        mouseLY = Math.min((mouse.getY() + yOff) / (getCellSize() + 1), mouse.getY());
 
         Cell currentCell = getCell(mouseLX, mouseLY);
         if (currentCell != null) {
@@ -91,20 +91,20 @@ public class ServerLevel extends Level {
         server.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Updating tick rate
-        if (keyboard.getKeys()[7] && keyDelay == -1) {
+        if (keys[7] && keyDelay == -1) {
             keyDelay = 10;
             delay++;
         }
-        if (keyboard.getKeys()[8] && keyDelay == -1) {
+        if (keys[8] && keyDelay == -1) {
             keyDelay = 10;
             if (delay > 1) delay--;
         }
 
         // Updating offset if needed
-        if (keyboard.getKeys()[10]) xOff -= scrollRate;
-        if (keyboard.getKeys()[11]) yOff -= scrollRate;
-        if (keyboard.getKeys()[12]) xOff += scrollRate;
-        if (keyboard.getKeys()[13]) yOff += scrollRate;
+        if (keys[10]) xOff -= scrollRate;
+        if (keys[11]) yOff -= scrollRate;
+        if (keys[12]) xOff += scrollRate;
+        if (keys[13]) yOff += scrollRate;
 
         if (xOff < 0) xOff = 0;
         if (xOff + server.getWidth() > width * (getCellSize() + 1) - 1)
@@ -179,9 +179,17 @@ public class ServerLevel extends Level {
 
     public void render(Screen screen) {
         screen.setOffset(xOff, yOff);
-        for (Cell cell : cells) {
-            if (cell == null) continue;
-            cell.render(screen, cell.getMaster().getColor());
+
+        // Render
+        int yStart = yOff / (getCellSize() + 1);
+        int yEnd = Math.min(yStart + server.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
+        for (int y = yStart; y < yEnd; y++) {
+            int xStart = xOff / (getCellSize() + 1);
+            int xEnd = Math.min(xStart + server.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
+            for (int x = xStart; x < xEnd; x++) {
+                if (cells[x + y * width] == null) continue; // Return if there is nothing to render
+                cells[x + y * width].render(screen, cells[x + y * width].getMaster().getColor()); // Rendering
+            }
         }
     }
 

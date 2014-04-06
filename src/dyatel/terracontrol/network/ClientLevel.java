@@ -66,8 +66,9 @@ public class ClientLevel extends Level {
     }
 
     public void update() {
-        // Updating key delay
+        // Updating key delay, getting key state
         if (keyDelay > -1) keyDelay--;
+        boolean[] keys = keyboard.getKeys();
 
         // Updating mouse coordinates, printing them
         mouseX = mouse.getX();
@@ -91,10 +92,10 @@ public class ClientLevel extends Level {
         if (!initialized) return;
 
         // Updating offset if needed
-        if (keyboard.getKeys()[10]) xOff -= scrollRate;
-        if (keyboard.getKeys()[11]) yOff -= scrollRate;
-        if (keyboard.getKeys()[12]) xOff += scrollRate;
-        if (keyboard.getKeys()[13]) yOff += scrollRate;
+        if (keys[10]) xOff -= scrollRate;
+        if (keys[11]) yOff -= scrollRate;
+        if (keys[12]) xOff += scrollRate;
+        if (keys[13]) yOff += scrollRate;
 
         if (xOff < 0) xOff = 0;
         if (xOff + client.getWidth() > width * (getCellSize() + 1) - 1)
@@ -175,19 +176,27 @@ public class ClientLevel extends Level {
     public void render(Screen screen) {
         if (!initialized) return;
         screen.setOffset(xOff, yOff);
-        for (int i = 0; i < cells.length; i++) {
-            if (cells[i] == null) return; // Return if there is nothing to render
-            CellMaster master = cells[i].getMaster();
 
-            // Calculating color
-            int color = Color.subtract(master.getColor(), 0xaa, 0xaa, 0xaa);
-            if (currentCell == null) {
-                color = master.getColor();
-            } else if (master.getOwner() == owner || (master.getOwner() != enemy && owner.getMaster().isNeighbor(master) && master.getColor() == currentColor)) {
-                color = currentColor;
+        // Render
+        int yStart = yOff / (getCellSize() + 1);
+        int yEnd = Math.min(yStart + client.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
+        for (int y = yStart; y < yEnd; y++) {
+            int xStart = xOff / (getCellSize() + 1);
+            int xEnd = Math.min(xStart + client.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
+            for (int x = xStart; x < xEnd; x++) {
+                if (cells[x + y * width] == null) continue; // Return if there is nothing to render
+                CellMaster master = cells[x + y * width].getMaster();
+
+                // Calculating color
+                int color = Color.subtract(master.getColor(), 0xaa, 0xaa, 0xaa);
+                if (currentCell == null) {
+                    color = master.getColor();
+                } else if (master.getOwner() == owner || (master.getOwner() != enemy && owner.getMaster().isNeighbor(master) && master.getColor() == currentColor)) {
+                    color = currentColor;
+                }
+
+                cells[x + y * width].render(screen, color); // Rendering
             }
-
-            cells[i].render(screen, color); // Rendering
         }
     }
 

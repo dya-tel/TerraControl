@@ -3,6 +3,7 @@ package dyatel.terracontrol.network;
 import dyatel.terracontrol.Client;
 import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
+import dyatel.terracontrol.level.ClientLevel;
 import dyatel.terracontrol.level.Owner;
 import dyatel.terracontrol.util.Debug;
 

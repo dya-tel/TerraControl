@@ -1,8 +1,8 @@
-package dyatel.terracontrol.network;
+package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Client;
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.level.*;
+import dyatel.terracontrol.network.ClientConnection;
 import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.Debug;
 

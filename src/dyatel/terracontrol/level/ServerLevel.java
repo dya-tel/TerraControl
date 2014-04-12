@@ -1,11 +1,7 @@
-package dyatel.terracontrol.network;
+package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.Server;
-import dyatel.terracontrol.level.Cell;
-import dyatel.terracontrol.level.CellMaster;
-import dyatel.terracontrol.level.Level;
-import dyatel.terracontrol.level.Updatable;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.Util;
 

@@ -2,8 +2,8 @@ package dyatel.terracontrol;
 
 import dyatel.terracontrol.input.Keyboard;
 import dyatel.terracontrol.input.Mouse;
+import dyatel.terracontrol.level.ClientLevel;
 import dyatel.terracontrol.network.ClientConnection;
-import dyatel.terracontrol.network.ClientLevel;
 import dyatel.terracontrol.util.Debug;
 
 import javax.swing.*;

@@ -5,7 +5,7 @@ import java.awt.event.KeyEvent;
 
 public class Keyboard extends KeyAdapter {
 
-    // reset 0, colors 1 6, +delay 7, -delay 8, left 10, up 11, right 12, down 13
+    // reset 0, colors 1-6, + 7, - 8, left 10, up 11, right 12, down 13
     private boolean[] keys;
 
     public Keyboard() {
@@ -22,10 +22,10 @@ public class Keyboard extends KeyAdapter {
             case KeyEvent.VK_SPACE:
                 keys[0] = state;
                 break;
-            case KeyEvent.VK_ADD:
+            case KeyEvent.VK_EQUALS:
                 keys[7] = state;
                 break;
-            case KeyEvent.VK_SUBTRACT:
+            case KeyEvent.VK_MINUS:
                 keys[8] = state;
                 break;
             case KeyEvent.VK_LEFT:

@@ -3,7 +3,6 @@ package dyatel.terracontrol.network;
 import dyatel.terracontrol.level.Owner;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 
 public class Player {
 

@@ -1,32 +1,28 @@
 package dyatel.terracontrol.level;
 
-public class Owner implements Updatable {
+public class Owner {
 
     private CellMaster master;
 
     private int id;
 
-    private boolean removed = false;
+    private Level level;
 
     public Owner(int x, int y, int id, Level level) {
-        this(level.getCell(x, y).getMaster(), id, level);
+        this(level.getCell(x, y).getMaster(), id);
     }
 
-    public Owner(CellMaster master, int id, Level level) {
+    public Owner(CellMaster master, int id) {
         this.id = id;
+        level = master.getLevel();
 
         if (master.getOwner() == null) {
             level.getDebug().println("Creating owner at master " + master);
             this.master = master;
             master.setOwner(this);
-            level.add(this);
         } else {
             level.getDebug().println("Failed creating owner " + this + " on master " + master + ": someone is already owning this master!");
         }
-    }
-
-    public void update() {
-        master.update();
     }
 
     public CellMaster getMaster() {
@@ -35,7 +31,7 @@ public class Owner implements Updatable {
 
     public void setColor(int color) {
         master.setColor(color);
-        update();
+        level.needUpdate(master);
     }
 
     public int getColor() {
@@ -44,14 +40,6 @@ public class Owner implements Updatable {
 
     public int getID() {
         return id;
-    }
-
-    public void remove() {
-        removed = true;
-    }
-
-    public boolean isRemoved() {
-        return removed;
     }
 
 }

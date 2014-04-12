@@ -1,7 +1,6 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.Server;
 
 public class Cell {
 
@@ -31,14 +30,8 @@ public class Cell {
         int height = cellSize;
 
         if (master.getOwner() != null) {
-            Cell cell = level.getCell(this.x + 1, this.y);
-            if (cell != null && cell.getMaster() == master) {
-                width++;
-            }
-            cell = level.getCell(this.x, this.y + 1);
-            if (cell != null && cell.getMaster() == master) {
-                height++;
-            }
+            if (level.getMaster(this.x + 1, this.y) == master) width++;
+            if (level.getMaster(this.x, this.y + 1) == master) height++;
         }
 
         screen.render(x, y, x + width, y + height, color, true);

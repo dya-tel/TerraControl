@@ -27,10 +27,13 @@ public class CellMaster implements Updatable {
     private static Random random = Util.getRandom();
 
     public CellMaster(Level level) {
+        // Calling this constructor means that field is not generated and we have to add cells ourselves
         this(Server.colors[random.nextInt(Server.colors.length)], level);
+        level.needUpdate(this);
     }
 
     public CellMaster(int color, Level level) {
+        // Calling this constructor means that field is generated and cells will add themselves
         this.color = color;
         this.level = level;
 
@@ -42,16 +45,14 @@ public class CellMaster implements Updatable {
     }
 
     public void merge(CellMaster master) {
-        // Updating cell lists and setting new master
+        // Updating cell lists and setting new master to each cell
         updateCellLists();
-        for (Cell cell : cells) {
-            cell.setMaster(master);
-        }
+        for (Cell cell : cells) cell.setMaster(master);
 
         // Just giving cells, cause we`ll be deleted and other master already has right color and owner
         master.addCells(cells);
 
-        remove();
+        remove(); // Removing ourselves because we merged with other master
     }
 
     private void updateCellLists() {
@@ -60,26 +61,19 @@ public class CellMaster implements Updatable {
             return;
         }
 
+        // Adding all new cells
         cells.addAll(newCells);
         newCells.clear();
 
         // Recalculating borders
         borderCells.clear();
         for (Cell cell : cells) {
-            int smCells = 0;
-
-            if (level.getCell(cell.getX(), cell.getY() - 1) != null && level.getCell(cell.getX(), cell.getY() - 1).getMaster() == this)
-                smCells++;
-            if (level.getCell(cell.getX() + 1, cell.getY()) != null && level.getCell(cell.getX() + 1, cell.getY()).getMaster() == this)
-                smCells++;
-            if (level.getCell(cell.getX(), cell.getY() + 1) != null && level.getCell(cell.getX(), cell.getY() + 1).getMaster() == this)
-                smCells++;
-            if (level.getCell(cell.getX() - 1, cell.getY()) != null && level.getCell(cell.getX() - 1, cell.getY()).getMaster() == this)
-                smCells++;
-
-            if (smCells < 4) {
+            // If at least one cell contacts with other master (or no master) then it`s placed on border
+            if (level.getMaster(cell.getX() - 1, cell.getY()) != this ||
+                    level.getMaster(cell.getX(), cell.getY() - 1) != this ||
+                    level.getMaster(cell.getX() + 1, cell.getY()) != this ||
+                    level.getMaster(cell.getX(), cell.getY() + 1) != this)
                 borderCells.add(cell);
-            }
         }
     }
 
@@ -95,9 +89,9 @@ public class CellMaster implements Updatable {
 
     private void checkNeighbor(int x, int y) {
         if (level.getCell(x, y) != null) {
-            CellMaster neighbor = level.getCell(x, y).getMaster();
+            CellMaster neighbor = level.getMaster(x, y);
             if (neighbor != this && neighbor.getColor() == color && (neighbor.getOwner() == owner || neighbor.getOwner() == null)) {
-                neighbor.merge(this);
+                neighbor.merge(this); // Merging with neighbor if needed
             } else {
                 if (!neighbors.contains(neighbor) && neighbor != this) neighbors.add(neighbor);
             }
@@ -125,7 +119,7 @@ public class CellMaster implements Updatable {
             tryToAdd(x, y);
         }
 
-        update();
+        level.needUpdate(this);
     }
 
     public void update() {

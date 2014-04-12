@@ -2,10 +2,7 @@ package dyatel.terracontrol.network;
 
 import dyatel.terracontrol.Client;
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.level.Cell;
-import dyatel.terracontrol.level.CellMaster;
-import dyatel.terracontrol.level.Level;
-import dyatel.terracontrol.level.Owner;
+import dyatel.terracontrol.level.*;
 import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.Debug;
 
@@ -53,8 +50,8 @@ public class ClientLevel extends Level {
         }
 
         // Placing owners
-        owner = new Owner(this.masters.get(masterID), ownerID, this);
-        enemy = new Owner(this.masters.get(enemyMaster), enemyOwner, this);
+        owner = new Owner(this.masters.get(masterID), ownerID);
+        enemy = new Owner(this.masters.get(enemyMaster), enemyOwner);
 
         canMakeATurn = ownerID == 0;
         if (!canMakeATurn) connection.turn(0);
@@ -104,6 +101,10 @@ public class ClientLevel extends Level {
         if (yOff + client.getFieldHeight() > height * (getCellSize() + 1) - 1)
             yOff = Math.max(height * (getCellSize() + 1) - 1 - client.getFieldHeight(), 0);
 
+        // Changing zoom by keyboard
+        if (keys[7]) changeZoom(1);
+        if (keys[8]) changeZoom(-1);
+
         // Printing current state
         switch (state) {
             case -1:
@@ -121,6 +122,17 @@ public class ClientLevel extends Level {
             case 3:
                 client.statusBar[1] = "Draw.";
                 break;
+        }
+
+        // Updating all the things
+        while (needUpdate.size() > 0) {
+            Updatable u = needUpdate.get(0);
+            if (!u.isRemoved()) {
+                u.update();
+            } else {
+                if (u instanceof CellMaster) masters.remove(u);
+            }
+            needUpdate.remove(0);
         }
 
         // Calculating number of cells that we can capture
@@ -144,16 +156,7 @@ public class ClientLevel extends Level {
 
     public void ready() {
         // Updating all masters to find borders and etc
-        for (int i = 0; i < masters.size(); i++) {
-            CellMaster master = masters.get(i);
-            if (master.isRemoved() || master == null) {
-                masters.remove(master);
-                i--;
-                continue;
-            }
-            master.update();
-        }
-
+        for (CellMaster master : masters) needUpdate(master);
         ready = true;
     }
 
@@ -185,7 +188,7 @@ public class ClientLevel extends Level {
             int xEnd = Math.min(xStart + client.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
-                CellMaster master = cells[x + y * width].getMaster();
+                CellMaster master = getMaster(x, y);
 
                 // Calculating color
                 int color = Color.subtract(master.getColor(), 0xaa, 0xaa, 0xaa);

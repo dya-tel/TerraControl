@@ -5,6 +5,7 @@ import dyatel.terracontrol.Server;
 import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.Level;
+import dyatel.terracontrol.level.Updatable;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.Util;
 
@@ -18,6 +19,8 @@ public class ServerLevel extends Level {
 
     private boolean generated = false;
     private boolean captured = false;
+
+    private long genStart;
 
     public ServerLevel(int width, int height, int cellSize, boolean fastGeneration, Server server) {
         super(cellSize, Debug.serverDebug);
@@ -33,27 +36,15 @@ public class ServerLevel extends Level {
 
         cells = new Cell[width * height];
 
+        genStart = System.currentTimeMillis();
         if (fastGeneration) {
             debug.println("Using fast generation...");
-            long start = System.currentTimeMillis();
             // Fill field with masters
             for (int i = 0; i < cells.length; i++) {
                 new Cell(i % width, i / width, new CellMaster(this));
             }
-            // Update masters
-            for (int i = 0; i < masters.size(); i++) {
-                CellMaster master = masters.get(i);
-                // Removing removed
-                if (master.isRemoved()) {
-                    masters.remove(master);
-                    i--;
-                    continue;
-                }
-                // Updating master
-                master.update();
-            }
-            debug.println("Generated level in " + (System.currentTimeMillis() - start) + " ms");
         } else {
+            debug.println("Using standard generation...");
             addMasters(width * height * 4 / 5, width * height * 5 / 5); // Standard generation
         }
     }
@@ -113,6 +104,17 @@ public class ServerLevel extends Level {
         if (yOff + server.getFieldHeight() > height * (getCellSize() + 1) - 1)
             yOff = Math.max(height * (getCellSize() + 1) - 1 - server.getFieldHeight(), 0);
 
+        // Updating all the things
+        while (needUpdate.size() > 0) {
+            Updatable u = needUpdate.get(0);
+            if (!u.isRemoved()) {
+                u.update();
+            } else {
+                if (u instanceof CellMaster) masters.remove(u);
+            }
+            needUpdate.remove(0);
+        }
+
         // Checking and showing generation progress
         if (!generated) {
             int gen = 0;
@@ -122,19 +124,15 @@ public class ServerLevel extends Level {
             if (gen != width * height) {
                 server.statusBar[0] = "Generated: " + gen * 100 / (width * height) + "%";
             } else {
+                debug.println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
                 server.statusBar[0] = "";
-                debug.println("Generated level!");
 
                 int tempC = 0;
                 for (CellMaster master : masters) {
                     tempC += master.getCells().size();
                     master.setID(masters.indexOf(master));
                 }
-
-                debug.println("Checking cells... " + (tempC == width * height) + ": " + tempC + " of " + width * height);
-                if (tempC != width * height) {
-                    debug.println(tempC < width * height ? ("Lost " + (width * height - tempC) + " cells.") : ("Found " + (tempC - width * height) + " immigrant cells."));
-                }
+                debug.println("Checking cells... " + ((tempC == width * height) ? "OK" : "Failed: " + tempC + "/" + width * height));
 
                 server.getConnection().createPlayers();
 
@@ -148,7 +146,7 @@ public class ServerLevel extends Level {
         // Slow generation if needed
         if (timer > 0) timer--;
         if (!generated && timer == 0) {
-            generate();
+            for (CellMaster master : masters) master.generate();
             timer = delay;
         }
 
@@ -163,20 +161,6 @@ public class ServerLevel extends Level {
         captured = true;
     }
 
-    private void generate() {
-        for (int i = 0; i < masters.size(); i++) {
-            CellMaster master = masters.get(i);
-            // Removing removed
-            if (master.isRemoved()) {
-                masters.remove(master);
-                i--;
-                continue;
-            }
-            // Generating level
-            master.generate();
-        }
-    }
-
     public void render(Screen screen) {
         screen.setOffset(xOff, yOff);
 
@@ -188,7 +172,7 @@ public class ServerLevel extends Level {
             int xEnd = Math.min(xStart + server.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
-                cells[x + y * width].render(screen, cells[x + y * width].getMaster().getColor()); // Rendering
+                cells[x + y * width].render(screen, getMaster(x, y).getColor()); // Rendering
             }
         }
     }

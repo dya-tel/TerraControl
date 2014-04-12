@@ -26,7 +26,7 @@ public class Level {
     protected int mouseLX, mouseLY; // Mouse coordinates used on level
 
     protected ArrayList<CellMaster> masters;
-    protected ArrayList<Owner> owners;
+    protected ArrayList<Updatable> needUpdate;
 
     protected Cell[] cells;
 
@@ -41,7 +41,7 @@ public class Level {
         this.debug = debug;
 
         masters = new ArrayList<CellMaster>();
-        owners = new ArrayList<Owner>();
+        needUpdate = new ArrayList<Updatable>();
     }
 
     public boolean canSetCell(int x, int y) {
@@ -56,6 +56,12 @@ public class Level {
         return cells == null ? null : cells[x + y * width];
     }
 
+    public CellMaster getMaster(int x, int y) {
+        // Safe method to get masters without checking cells
+        if (getCell(x, y) == null) return null;
+        return getCell(x, y).getMaster();
+    }
+
     public void setCell(Cell cell) {
         cells[cell.getX() + cell.getY() * width] = cell;
     }
@@ -64,8 +70,8 @@ public class Level {
         masters.add(u);
     }
 
-    public void add(Owner u) {
-        owners.add(u);
+    public void needUpdate(Updatable u) {
+        needUpdate.add(u);
     }
 
     public int getCellSize() {
@@ -93,6 +99,7 @@ public class Level {
     }
 
     public void changeZoom(int n) {
+        //TODO: fix this already
         if (cellSize * (zoom + n * 0.1d) < 1) return; // Returning if zoomed too much
 
         zoom += n * 0.1d;

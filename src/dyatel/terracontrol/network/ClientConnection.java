@@ -4,7 +4,6 @@ import dyatel.terracontrol.Client;
 import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.ClientLevel;
-import dyatel.terracontrol.level.Owner;
 import dyatel.terracontrol.util.Debug;
 
 import java.net.DatagramPacket;
@@ -49,12 +48,20 @@ public class ClientConnection extends Connection {
 
     protected void process(DatagramPacket packet) {
         String message = new String(packet.getData()).trim();
-        //debug.println(message);
+        debug.println(message);
         if (message.startsWith("/da/")) {
             String[] dataR = message.substring(4).split("x");
             debug.println("Connected!");
             client.statusBar[0] = "";
-            ((ClientLevel) level).init(Integer.parseInt(dataR[0]), Integer.parseInt(dataR[1]), Integer.parseInt(dataR[2]), Integer.parseInt(dataR[3]), Integer.parseInt(dataR[4]), Integer.parseInt(dataR[5]), Integer.parseInt(dataR[6]), this);
+
+            // Placing all colors into array
+            int n = Integer.parseInt(dataR[7]);
+            int[] colors = new int[n];
+            for (int i = 0; i < n; i++) {
+                colors[i] = Integer.parseInt(dataR[8 + i]);
+            }
+            // Initializing level with all data
+            ((ClientLevel) level).init(Integer.parseInt(dataR[0]), Integer.parseInt(dataR[1]), Integer.parseInt(dataR[2]), Integer.parseInt(dataR[3]), Integer.parseInt(dataR[4]), Integer.parseInt(dataR[5]), Integer.parseInt(dataR[6]), colors, this);
             connected = true;
         } else if (message.startsWith("/ma/")) {
             ArrayList<CellMaster> masters = level.getMasters();
@@ -65,7 +72,7 @@ public class ClientConnection extends Connection {
 
             if (start == receivedMasters) {
                 for (int i = start; i <= end; i++) {
-                    int masterColor = Integer.parseInt(cellsR[i - start + 2]);
+                    int masterColor = level.getColors()[Integer.parseInt(cellsR[i - start + 2])];
                     CellMaster master = masters.get(i);
                     master.setColor(masterColor);
                     master.setID(i);
@@ -99,14 +106,14 @@ public class ClientConnection extends Connection {
         } else if (message.startsWith("/to/")) {
             // Receiving our move
             String[] dataR = message.substring(4).split("x");
-            int color = Integer.parseInt(dataR[0]);
+            int color = level.getColors()[Integer.parseInt(dataR[0])];
             ((ClientLevel) level).getOwner().setColor(color);
 
             turnSuccessfulO = true;
         } else if (message.startsWith("/te/")) {
             // Receiving enemy`s move
             String[] dataR = message.substring(4).split("x");
-            int color = Integer.parseInt(dataR[0]);
+            int color = level.getColors()[Integer.parseInt(dataR[0])];
             ((ClientLevel) level).getEnemy().setColor(color);
 
             turnSuccessfulE = true;
@@ -186,17 +193,18 @@ public class ClientConnection extends Connection {
     }
 
     public void turn(final int color) {
-        final Owner owner = ((ClientLevel) level).getOwner();
         final ClientLevel level = (ClientLevel) this.level;
-        if (owner.getColor() == color) return;
+        if (level.getOwner().getColor() == color) return;
+
+        final int colorID = level.getColorID(color);
         turnThread = new Thread("TurnManager") {
             public void run() {
-                if (color != 0) {
+                if (colorID != -1) {
                     // Sending our turn
                     level.setCanMakeATurn(false);
                     turnSuccessfulO = false;
                     while (!turnSuccessfulO && running) {
-                        send("/tu/" + color, address, port);
+                        send("/tu/" + colorID, address, port);
 
                         try {
                             sleep(100);

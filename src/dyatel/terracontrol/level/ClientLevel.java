@@ -35,7 +35,7 @@ public class ClientLevel extends Level {
         mouse.setLevel(this);
     }
 
-    public void init(int width, int height, int masters, int masterID, int ownerID, int enemyMaster, int enemyOwner, ClientConnection connection) {
+    public void init(int width, int height, int masters, int masterID, int ownerID, int enemyMaster, int enemyOwner, int[] colors, ClientConnection connection) {
         this.width = width;
         this.height = height;
 
@@ -55,6 +55,8 @@ public class ClientLevel extends Level {
 
         canMakeATurn = ownerID == 0;
         if (!canMakeATurn) connection.turn(0);
+
+        this.colors = colors;
 
         // Requesting level
         connection.receiveLevel();

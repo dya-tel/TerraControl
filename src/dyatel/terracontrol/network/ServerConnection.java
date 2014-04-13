@@ -1,5 +1,6 @@
 package dyatel.terracontrol.network;
 
+import dyatel.terracontrol.Server;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.Owner;
 import dyatel.terracontrol.level.ServerLevel;
@@ -38,6 +39,10 @@ public class ServerConnection extends Connection {
                     players[1].connect(address, port);
                     data += players[1].getOwner().getMaster().getID() + "x" + players[1].getID() + "x" + players[0].getOwner().getMaster().getID() + "x" + players[0].getID();
                 }
+                data += "x" + Server.colors.length;
+                for (int i = 0; i < Server.colors.length; i++) {
+                    data += "x" + Server.colors[i];
+                }
 
                 send(data, address, port);
             }
@@ -57,13 +62,14 @@ public class ServerConnection extends Connection {
                     int messageStart = start;
 
                     for (int i = start; i <= end; i++) {
-                        int color = masters.get(i).getColor();
+                        int color = level.getColorID(masters.get(i).getColor());
                         temp = "/ma/" + messageStart + "x";
                         if ((temp + i + data + "x" + color).length() > Connection.BUFFER_SIZE) {
                             send(temp + (i - 1) + data, address, port);
                             messageStart = i;
-                            data = "x" + color;
-                        } else data += "x" + color;
+                            data = "";
+                        }
+                        data += "x" + color;
                     }
                     send("/ma/" + messageStart + "x" + end + data, address, port);
                 }
@@ -85,13 +91,14 @@ public class ServerConnection extends Connection {
                     int messageStart = start;
 
                     for (int i = start; i <= end; i++) {
-                        int id = level.getCell(i % width, i / width).getMaster().getID();
+                        int id = level.getMaster(i % width, i / width).getID();
                         temp = "/ce/" + messageStart + "x";
                         if ((temp + i + data + "x" + id).length() > Connection.BUFFER_SIZE) {
                             send(temp + (i - 1) + data, address, port);
                             messageStart = i;
-                            data = "x" + id;
-                        } else data += "x" + id;
+                            data = "";
+                        }
+                        data += "x" + id;
                     }
                     send("/ce/" + messageStart + "x" + end + data, address, port);
                 }

@@ -33,6 +33,8 @@ public class Level {
     protected int timer = 0;
     protected int delay = 20;
 
+    protected int[] colors;
+
     protected boolean ready = false;
 
     protected Level(int cellSize, Debug debug) {
@@ -96,6 +98,17 @@ public class Level {
 
     public boolean isReady() {
         return ready;
+    }
+
+    public int[] getColors() {
+        return colors;
+    }
+
+    public int getColorID(int color) {
+        for (int i = 0; i < colors.length; i++) {
+            if (colors[i] == color) return i;
+        }
+        return -1;
     }
 
     public void changeZoom(int n) {

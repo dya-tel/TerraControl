@@ -32,6 +32,8 @@ public class ServerLevel extends Level {
 
         cells = new Cell[width * height];
 
+        colors = Server.colors;
+
         genStart = System.currentTimeMillis();
         if (fastGeneration) {
             debug.println("Using fast generation...");

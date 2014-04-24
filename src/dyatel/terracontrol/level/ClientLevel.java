@@ -3,6 +3,7 @@ package dyatel.terracontrol.level;
 import dyatel.terracontrol.Client;
 import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.network.ClientConnection;
+import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.Debug;
 
@@ -11,18 +12,18 @@ import java.util.ArrayList;
 public class ClientLevel extends Level {
 
     private Client client;
-    private ClientConnection connection;
 
     private boolean initialized = false;
 
-    private Owner owner;
-    private Owner enemy;
+    private Player owner;
+    private Player enemy;
 
-    private boolean canMakeATurn;
     private int state = -1; // -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
     private Cell currentCell; // Cell player is pointing on
     public int currentColor;
+
+    private boolean needToMakeATurn = false;
 
     public ClientLevel(int cellSize, Client client) {
         super(cellSize, Debug.clientDebug);
@@ -39,8 +40,6 @@ public class ClientLevel extends Level {
         this.width = width;
         this.height = height;
 
-        this.connection = connection;
-
         cells = new Cell[width * height];
 
         // Creating masters
@@ -50,11 +49,8 @@ public class ClientLevel extends Level {
         }
 
         // Placing owners
-        owner = new Owner(this.masters.get(masterID), ownerID);
-        enemy = new Owner(this.masters.get(enemyMaster), enemyOwner);
-
-        canMakeATurn = ownerID == 0;
-        if (!canMakeATurn) connection.turn(0);
+        owner = new Player(this.masters.get(masterID), ownerID);
+        enemy = new Player(this.masters.get(enemyMaster), enemyOwner);
 
         this.colors = colors;
 
@@ -113,7 +109,7 @@ public class ClientLevel extends Level {
                 client.statusBar[1] = "Waiting...";
                 break;
             case 0:
-                client.statusBar[1] = canMakeATurn ? "Your move!" : "Wait...";
+                client.statusBar[1] = needToMakeATurn ? "Your move!" : "Wait...";
                 break;
             case 1:
                 client.statusBar[1] = "You won!";
@@ -150,9 +146,9 @@ public class ClientLevel extends Level {
         client.statusBar[4] = String.valueOf(owner.getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
 
         // Making a turn if needed
-        if (!canMakeATurn || state != 0) return;
-        if (mouse.isClicked() && availableCells > 0) {
-            connection.turn(currentColor);
+        if (needToMakeATurn && state == 0 && mouse.isClicked() && availableCells > 0) {
+            owner.addTurn(getColorID(currentColor));
+            needToMakeATurn = false;
         }
     }
 
@@ -162,16 +158,20 @@ public class ClientLevel extends Level {
         ready = true;
     }
 
-    public Owner getOwner() {
+    public Player getOwner() {
         return owner;
     }
 
-    public Owner getEnemy() {
+    public Player getEnemy() {
         return enemy;
     }
 
-    public void setCanMakeATurn(boolean state) {
-        canMakeATurn = state;
+    public boolean isMyTurn() {
+        return needToMakeATurn;
+    }
+
+    public void needTurn() {
+        needToMakeATurn = true;
     }
 
     public void changeState(int state) {

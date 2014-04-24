@@ -87,6 +87,7 @@ public class Client extends Canvas implements Runnable {
     public void stop() {
         debug.println("Stopping client...");
         running = false;
+
         connection.stop();
         try {
             thread.join();

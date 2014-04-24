@@ -25,9 +25,7 @@ public class ClientConnection extends Connection {
     private int receivedMasters = 0;
     private int receivedCells = 0;
 
-    private Thread turnThread;
-    private boolean turnSuccessfulO;
-    private boolean turnSuccessfulE;
+    private Thread eTurnReceiver;
 
     public ClientConnection(String address, int port, Client client) {
         super(Debug.clientDebug);
@@ -48,7 +46,9 @@ public class ClientConnection extends Connection {
 
     protected void process(DatagramPacket packet) {
         String message = new String(packet.getData()).trim();
-        debug.println(message);
+        //debug.println(message);
+
+        final ClientLevel cLevel = (ClientLevel) level;
         if (message.startsWith("/da/")) {
             String[] dataR = message.substring(4).split("x");
             debug.println("Connected!");
@@ -61,10 +61,10 @@ public class ClientConnection extends Connection {
                 colors[i] = Integer.parseInt(dataR[8 + i]);
             }
             // Initializing level with all data
-            ((ClientLevel) level).init(Integer.parseInt(dataR[0]), Integer.parseInt(dataR[1]), Integer.parseInt(dataR[2]), Integer.parseInt(dataR[3]), Integer.parseInt(dataR[4]), Integer.parseInt(dataR[5]), Integer.parseInt(dataR[6]), colors, this);
+            cLevel.init(Integer.parseInt(dataR[0]), Integer.parseInt(dataR[1]), Integer.parseInt(dataR[2]), Integer.parseInt(dataR[3]), Integer.parseInt(dataR[4]), Integer.parseInt(dataR[5]), Integer.parseInt(dataR[6]), colors, this);
             connected = true;
         } else if (message.startsWith("/ma/")) {
-            ArrayList<CellMaster> masters = level.getMasters();
+            ArrayList<CellMaster> masters = cLevel.getMasters();
 
             String[] cellsR = message.substring(4).split("x");
             int start = Integer.parseInt(cellsR[0]);
@@ -103,30 +103,32 @@ public class ClientConnection extends Connection {
             }
 
             client.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
-        } else if (message.startsWith("/to/")) {
-            // Receiving our move
-            String[] dataR = message.substring(4).split("x");
-            int color = level.getColors()[Integer.parseInt(dataR[0])];
-            ((ClientLevel) level).getOwner().setColor(color);
+        } else if (message.startsWith("/tu/")) {
+            int turn = Integer.parseInt(message.substring(4));
 
-            turnSuccessfulO = true;
+            if (turn == cLevel.getOwner().getTurns()) {
+                send("/to/" + turn + "x" + cLevel.getOwner().getLastTurn());
+                receiveEnemyTurn();
+            } else {
+                cLevel.needTurn();
+            }
         } else if (message.startsWith("/te/")) {
             // Receiving enemy`s move
             String[] dataR = message.substring(4).split("x");
-            int color = level.getColors()[Integer.parseInt(dataR[0])];
-            ((ClientLevel) level).getEnemy().setColor(color);
+            int turn = Integer.parseInt(dataR[0]);
+            int colorID = Integer.parseInt(dataR[1]);
 
-            turnSuccessfulE = true;
+            if (turn == cLevel.getEnemy().getTurns() + 1) cLevel.getEnemy().addTurn(colorID);
         } else if (message.startsWith("/st/")) {
             int state = Integer.parseInt(message.substring(4));
-            ((ClientLevel) level).changeState(state);
+            cLevel.changeState(state);
         }
     }
 
     protected void waitForThreads() throws InterruptedException {
         if (connecter != null) connecter.join();
         if (levelReceiver != null) levelReceiver.join();
-        if (turnThread != null) turnThread.join();
+        if (eTurnReceiver != null) eTurnReceiver.join();
     }
 
     public void connect() {
@@ -134,7 +136,7 @@ public class ClientConnection extends Connection {
             public void run() {
                 while (!connected && running) {
                     try {
-                        send("/co/", address, port);
+                        send("/co/");
                         sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -159,9 +161,9 @@ public class ClientConnection extends Connection {
                 while (receivedMasters < masters && running) {
                     try {
                         if (receivedCells + perRequest < masters)
-                            send("/ma/" + receivedMasters + "x" + (receivedMasters + perRequest), address, port);
+                            send("/ma/" + receivedMasters + "x" + (receivedMasters + perRequest));
                         else
-                            send("/ma/" + receivedMasters + "x" + masters, address, port);
+                            send("/ma/" + receivedMasters + "x" + masters);
 
                         sleep(100);
                     } catch (InterruptedException e) {
@@ -173,9 +175,9 @@ public class ClientConnection extends Connection {
                 while (receivedCells < width * height && running) {
                     try {
                         if (receivedCells + perRequest < width * height)
-                            send("/ce/" + receivedCells + "x" + (receivedCells + perRequest), address, port);
+                            send("/ce/" + receivedCells + "x" + (receivedCells + perRequest));
                         else
-                            send("/ce/" + receivedCells + "x" + width * height, address, port);
+                            send("/ce/" + receivedCells + "x" + width * height);
 
                         sleep(100);
                     } catch (InterruptedException e) {
@@ -185,50 +187,33 @@ public class ClientConnection extends Connection {
 
                 client.statusBar[0] = "";
                 level.ready();
-                send("/rd/", address, port);
+                send("/rd/");
             }
         };
 
         levelReceiver.start();
     }
 
-    public void turn(final int color) {
-        final ClientLevel level = (ClientLevel) this.level;
-        if (level.getOwner().getColor() == color) return;
-
-        final int colorID = level.getColorID(color);
-        turnThread = new Thread("TurnManager") {
+    public void receiveEnemyTurn() {
+        if (eTurnReceiver != null) return;
+        eTurnReceiver = new Thread("EnemyTurnReceiver") {
             public void run() {
-                if (colorID != -1) {
-                    // Sending our turn
-                    level.setCanMakeATurn(false);
-                    turnSuccessfulO = false;
-                    while (!turnSuccessfulO && running) {
-                        send("/tu/" + colorID, address, port);
-
-                        try {
-                            sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                // Receiving enemy`s turn
-                turnSuccessfulE = false;
-                while (!turnSuccessfulE && running) {
-                    send("/te/", address, port);
-
+                while (running && !((ClientLevel) level).isMyTurn()) {
+                    send("/te/");
                     try {
                         sleep(100);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-                level.setCanMakeATurn(true);
+                eTurnReceiver = null;
             }
         };
-        turnThread.start();
+        eTurnReceiver.start();
+    }
+
+    public void send(String message) {
+        send(message, address, port);
     }
 
 }

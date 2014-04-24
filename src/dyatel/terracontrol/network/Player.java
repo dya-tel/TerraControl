@@ -1,6 +1,7 @@
 package dyatel.terracontrol.network;
 
-import dyatel.terracontrol.level.Owner;
+import dyatel.terracontrol.level.CellMaster;
+import dyatel.terracontrol.level.Level;
 
 import java.net.InetAddress;
 
@@ -8,7 +9,9 @@ public class Player {
 
     private int id;
 
-    private Owner owner;
+    private Level level;
+
+    private CellMaster master;
 
     private InetAddress address;
     private int port;
@@ -16,20 +19,36 @@ public class Player {
     private boolean connected;
     private boolean ready;
 
-    private int lastTurn;
+    private int turns = 0;
+    private int lastTurn = -1;
 
-    public Player(Owner owner) {
-        this.owner = owner;
+    public Player(int x, int y, int id, Level level) {
+        this(level.getCell(x, y).getMaster(), id);
+    }
 
-        id = owner.getID();
+    public Player(CellMaster master, int id) {
+        this.id = id;
+        level = master.getLevel();
+
+        if (master.getOwner() == null) {
+            level.getDebug().println("Creating player at master " + master);
+            this.master = master;
+            master.setOwner(this);
+        } else {
+            level.getDebug().println("Failed creating player " + this + " on master " + master + ": someone is already owning this master!");
+        }
     }
 
     public int getID() {
         return id;
     }
 
-    public Owner getOwner() {
-        return owner;
+    public CellMaster getMaster() {
+        return master;
+    }
+
+    public int getColor() {
+        return master.getColor();
     }
 
     public InetAddress getAddress() {
@@ -59,8 +78,16 @@ public class Player {
         return ready;
     }
 
-    public void setTurn(int color) {
-        lastTurn = color;
+    public void addTurn(int colorID) {
+        master.setColor(level.getColors()[colorID]);
+        level.needUpdate(master);
+
+        lastTurn = colorID;
+        turns++;
+    }
+
+    public int getTurns() {
+        return turns;
     }
 
     public int getLastTurn() {

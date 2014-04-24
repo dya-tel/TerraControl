@@ -2,9 +2,9 @@ package dyatel.terracontrol.network;
 
 import dyatel.terracontrol.Server;
 import dyatel.terracontrol.level.CellMaster;
-import dyatel.terracontrol.level.Owner;
 import dyatel.terracontrol.level.ServerLevel;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.Util;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -13,6 +13,10 @@ import java.util.ArrayList;
 public class ServerConnection extends Connection {
 
     private Player[] players = new Player[2];
+
+    private int currentPlayer;
+
+    private int state = -1; // -1 - waiting connections, 0 - playing, 1 - end
 
     public ServerConnection(ServerLevel level, int port) {
         super(port, Debug.serverDebug);
@@ -26,6 +30,7 @@ public class ServerConnection extends Connection {
         final InetAddress address = packet.getAddress();
         final int port = packet.getPort();
         //debug.println(message);
+
         if (message.startsWith("/co/")) {
             if (((ServerLevel) level).isGenerated()) {
                 debug.println("Connection request from " + packet.getAddress() + ":" + packet.getPort() + "");
@@ -34,10 +39,10 @@ public class ServerConnection extends Connection {
 
                 if (!players[0].isConnected()) {
                     players[0].connect(address, port);
-                    data += players[0].getOwner().getMaster().getID() + "x" + players[0].getID() + "x" + players[1].getOwner().getMaster().getID() + "x" + players[1].getID();
+                    data += players[0].getMaster().getID() + "x" + players[0].getID() + "x" + players[1].getMaster().getID() + "x" + players[1].getID();
                 } else {
                     players[1].connect(address, port);
-                    data += players[1].getOwner().getMaster().getID() + "x" + players[1].getID() + "x" + players[0].getOwner().getMaster().getID() + "x" + players[0].getID();
+                    data += players[1].getMaster().getID() + "x" + players[1].getID() + "x" + players[0].getMaster().getID() + "x" + players[0].getID();
                 }
                 data += "x" + Server.colors.length;
                 for (int i = 0; i < Server.colors.length; i++) {
@@ -113,40 +118,43 @@ public class ServerConnection extends Connection {
             if (players[0].isReady() && players[1].isReady()) {
                 send("/st/0", players[0].getAddress(), players[0].getPort());
                 send("/st/0", players[1].getAddress(), players[1].getPort());
+                startTurnManager();
             }
-        } else if (message.startsWith("/tu/")) {
-            int color = Integer.parseInt(message.substring(4));
+        } else if (message.startsWith("/to/")) {
+            String[] dataR = message.substring(4).split("x");
+            int turn = Integer.parseInt(dataR[0]);
+            int colorID = Integer.parseInt(dataR[1]);
 
             if (players[0].equals(address, port)) {
-                players[0].getOwner().setColor(color);
-                players[0].setTurn(color);
-                players[1].setTurn(0);
-                send("/to/" + color, players[0].getAddress(), players[0].getPort());
+                if (players[0].getTurns() == turn - 1) {
+                    players[0].addTurn(colorID);
+                    currentPlayer = 1;
+                }
             } else {
-                players[1].getOwner().setColor(color);
-                players[1].setTurn(color);
-                players[0].setTurn(0);
-                send("/to/" + color, players[1].getAddress(), players[1].getPort());
+                if (players[1].getTurns() == turn - 1) {
+                    players[1].addTurn(colorID);
+                    currentPlayer = 0;
+                }
             }
         } else if (message.startsWith("/te/")) {
             if (players[0].equals(address, port)) {
-                if (players[1].getLastTurn() != 0)
-                    send("/te/" + players[1].getLastTurn(), players[0].getAddress(), players[0].getPort());
+                if (players[1].getLastTurn() != -1)
+                    send("/te/" + players[1].getTurns() + "x" + players[1].getLastTurn(), players[0].getAddress(), players[0].getPort());
             } else {
-                if (players[0].getLastTurn() != 0)
-                    send("/te/" + players[0].getLastTurn(), players[1].getAddress(), players[1].getPort());
+                if (players[0].getLastTurn() != -1)
+                    send("/te/" + players[0].getTurns() + "x" + players[0].getLastTurn(), players[1].getAddress(), players[1].getPort());
             }
         }
     }
 
     public void createPlayers() {
-        players[0] = new Player(new Owner(0, 0, 0, level));
-        players[1] = new Player(new Owner(level.getWidth() - 1, level.getHeight() - 1, 1, level));
+        players[0] = new Player(0, 0, 0, level);
+        players[1] = new Player(level.getWidth() - 1, level.getHeight() - 1, 1, level);
     }
 
     public void gameOver() {
-        int p1 = players[0].getOwner().getMaster().getCells().size();
-        int p2 = players[1].getOwner().getMaster().getCells().size();
+        int p1 = players[0].getMaster().getCells().size();
+        int p2 = players[1].getMaster().getCells().size();
         if (p1 > p2) {
             send("/st/1", players[0].getAddress(), players[0].getPort());
             send("/st/2", players[1].getAddress(), players[1].getPort());
@@ -157,6 +165,26 @@ public class ServerConnection extends Connection {
             send("/st/3", players[0].getAddress(), players[0].getPort());
             send("/st/3", players[1].getAddress(), players[1].getPort());
         }
+
+        state = 2;
+    }
+
+    private void startTurnManager() {
+        state = 0;
+        new Thread() {
+            public void run() {
+                currentPlayer = Util.getRandom().nextInt(players.length);
+
+                while(running && state == 0) {
+                    send("/tu/" + (players[currentPlayer].getTurns() + 1), players[currentPlayer].getAddress(), players[currentPlayer].getPort());
+                    try {
+                        sleep(100);
+                    } catch(InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.start();
     }
 
 }

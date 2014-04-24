@@ -1,6 +1,7 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Server;
+import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.Util;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class CellMaster implements Updatable {
 
     private ArrayList<CellMaster> neighbors = new ArrayList<CellMaster>();
 
-    private Owner owner = null;
+    private Player owner = null;
 
     private Level level;
 
@@ -146,11 +147,11 @@ public class CellMaster implements Updatable {
         return id;
     }
 
-    public void setOwner(Owner owner) {
+    public void setOwner(Player owner) {
         this.owner = owner;
     }
 
-    public Owner getOwner() {
+    public Player getOwner() {
         return owner;
     }
 

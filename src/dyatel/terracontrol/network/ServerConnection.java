@@ -31,7 +31,11 @@ public class ServerConnection extends Connection {
         final int port = packet.getPort();
         //debug.println(message);
 
-        if (message.startsWith("/co/")) {
+        // Get data from message
+        final String prefix = message.substring(0, 4);
+        final String[] dataR = message.substring(4).split("x");
+
+        if (prefix.equals("/co/")) {
             if (((ServerLevel) level).isGenerated()) {
                 debug.println("Connection request from " + packet.getAddress() + ":" + packet.getPort() + "");
 
@@ -44,6 +48,8 @@ public class ServerConnection extends Connection {
                     players[1].connect(address, port);
                     data += players[1].getMaster().getID() + "x" + players[1].getID() + "x" + players[0].getMaster().getID() + "x" + players[0].getID();
                 }
+
+                // Put colors into data
                 data += "x" + Server.colors.length;
                 for (int i = 0; i < Server.colors.length; i++) {
                     data += "x" + Server.colors[i];
@@ -51,10 +57,9 @@ public class ServerConnection extends Connection {
 
                 send(data, address, port);
             }
-        } else if (message.startsWith("/ma/")) {
+        } else if (prefix.equals("/ma/")) {
             new Thread("MasterSender") {
                 public void run() {
-                    String[] dataR = message.substring(4).split("x");
                     int start = Integer.parseInt(dataR[0]);
                     int end = Integer.parseInt(dataR[1]);
 
@@ -79,10 +84,9 @@ public class ServerConnection extends Connection {
                     send("/ma/" + messageStart + "x" + end + data, address, port);
                 }
             }.start();
-        } else if (message.startsWith("/ce/")) {
+        } else if (prefix.equals("/ce/")) {
             new Thread("LevelSender") {
                 public void run() {
-                    String[] dataR = message.substring(4).split("x");
                     int start = Integer.parseInt(dataR[0]);
                     int end = Integer.parseInt(dataR[1]);
 
@@ -108,7 +112,7 @@ public class ServerConnection extends Connection {
                     send("/ce/" + messageStart + "x" + end + data, address, port);
                 }
             }.start();
-        } else if (message.startsWith("/rd/")) {
+        } else if (prefix.equals("/rd/")) {
             if (players[0].equals(address, port)) {
                 players[0].ready();
             } else {
@@ -120,8 +124,7 @@ public class ServerConnection extends Connection {
                 send("/st/0", players[1].getAddress(), players[1].getPort());
                 startTurnManager();
             }
-        } else if (message.startsWith("/to/")) {
-            String[] dataR = message.substring(4).split("x");
+        } else if (prefix.equals("/to/")) {
             int turn = Integer.parseInt(dataR[0]);
             int colorID = Integer.parseInt(dataR[1]);
 
@@ -136,7 +139,7 @@ public class ServerConnection extends Connection {
                     currentPlayer = 0;
                 }
             }
-        } else if (message.startsWith("/te/")) {
+        } else if (prefix.equals("/te/")) {
             if (players[0].equals(address, port)) {
                 if (players[1].getLastTurn() != -1)
                     send("/te/" + players[1].getTurns() + "x" + players[1].getLastTurn(), players[0].getAddress(), players[0].getPort());

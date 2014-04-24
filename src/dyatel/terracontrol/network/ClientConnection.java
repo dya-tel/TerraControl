@@ -45,12 +45,15 @@ public class ClientConnection extends Connection {
     }
 
     protected void process(DatagramPacket packet) {
-        String message = new String(packet.getData()).trim();
+        final String message = new String(packet.getData()).trim();
         //debug.println(message);
 
+        // Get data from message
+        final String prefix = message.substring(0, 4);
+        final String[] dataR = message.substring(4).split("x");
+
         final ClientLevel cLevel = (ClientLevel) level;
-        if (message.startsWith("/da/")) {
-            String[] dataR = message.substring(4).split("x");
+        if (prefix.equals("/da/")) {
             debug.println("Connected!");
             client.statusBar[0] = "";
 
@@ -63,16 +66,15 @@ public class ClientConnection extends Connection {
             // Initializing level with all data
             cLevel.init(Integer.parseInt(dataR[0]), Integer.parseInt(dataR[1]), Integer.parseInt(dataR[2]), Integer.parseInt(dataR[3]), Integer.parseInt(dataR[4]), Integer.parseInt(dataR[5]), Integer.parseInt(dataR[6]), colors, this);
             connected = true;
-        } else if (message.startsWith("/ma/")) {
+        } else if (prefix.equals("/ma/")) {
             ArrayList<CellMaster> masters = cLevel.getMasters();
 
-            String[] cellsR = message.substring(4).split("x");
-            int start = Integer.parseInt(cellsR[0]);
-            int end = Integer.parseInt(cellsR[1]);
+            int start = Integer.parseInt(dataR[0]);
+            int end = Integer.parseInt(dataR[1]);
 
             if (start == receivedMasters) {
                 for (int i = start; i <= end; i++) {
-                    int masterColor = level.getColors()[Integer.parseInt(cellsR[i - start + 2])];
+                    int masterColor = level.getColors()[Integer.parseInt(dataR[i - start + 2])];
                     CellMaster master = masters.get(i);
                     master.setColor(masterColor);
                     master.setID(i);
@@ -83,10 +85,9 @@ public class ClientConnection extends Connection {
             }
 
             client.statusBar[0] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
-        } else if (message.startsWith("/ce/")) {
-            String[] cellsR = message.substring(4).split("x");
-            int start = Integer.parseInt(cellsR[0]);
-            int end = Integer.parseInt(cellsR[1]);
+        } else if (prefix.equals("/ce/")) {
+            int start = Integer.parseInt(dataR[0]);
+            int end = Integer.parseInt(dataR[1]);
 
             int width = level.getWidth();
             int height = level.getHeight();
@@ -94,7 +95,7 @@ public class ClientConnection extends Connection {
 
             if (start == receivedCells) {
                 for (int i = start; i <= end; i++) {
-                    int masterID = Integer.parseInt(cellsR[i - start + 2]);
+                    int masterID = Integer.parseInt(dataR[i - start + 2]);
                     new Cell(i % width, i / width, masters.get(masterID));
                     receivedCells++;
                 }
@@ -103,8 +104,8 @@ public class ClientConnection extends Connection {
             }
 
             client.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
-        } else if (message.startsWith("/tu/")) {
-            int turn = Integer.parseInt(message.substring(4));
+        } else if (prefix.equals("/tu/")) {
+            int turn = Integer.parseInt(dataR[0]);
 
             if (turn == cLevel.getOwner().getTurns()) {
                 send("/to/" + turn + "x" + cLevel.getOwner().getLastTurn());
@@ -112,9 +113,8 @@ public class ClientConnection extends Connection {
             } else {
                 cLevel.needTurn();
             }
-        } else if (message.startsWith("/te/")) {
+        } else if (prefix.equals("/te/")) {
             // Receiving enemy`s move
-            String[] dataR = message.substring(4).split("x");
             int turn = Integer.parseInt(dataR[0]);
             int colorID = Integer.parseInt(dataR[1]);
 

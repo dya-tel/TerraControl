@@ -46,7 +46,7 @@ public class ClientConnection extends Connection {
 
     protected void process(DatagramPacket packet) {
         final String message = new String(packet.getData()).trim();
-        //debug.println(message);
+        debug.println(message);
 
         // Get data from message
         final String prefix = message.substring(0, 4);
@@ -151,13 +151,15 @@ public class ClientConnection extends Connection {
     public void receiveLevel() {
         levelReceiver = new Thread("LevelReceiver") {
             public void run() {
-                int perRequest = 100;
+                int perRequest;
 
                 int width = level.getWidth();
                 int height = level.getHeight();
                 int masters = level.getMasters().size();
 
                 // Requesting masters
+                // Calculating the number of max possible masters per request
+                perRequest = ((Connection.BUFFER_SIZE - 4) - 2 * (String.valueOf(masters).length()) - 1) / (String.valueOf(level.getColors().length).length() + 1) - 1;
                 while (receivedMasters < masters && running) {
                     try {
                         if (receivedCells + perRequest < masters)
@@ -172,6 +174,8 @@ public class ClientConnection extends Connection {
                 }
 
                 // Requesting cells
+                // Calculating the number of max possible cells per request
+                perRequest = ((Connection.BUFFER_SIZE - 4) - 2 * (String.valueOf(width * height).length()) - 1) / (String.valueOf(masters).length() + 1) - 1;
                 while (receivedCells < width * height && running) {
                     try {
                         if (receivedCells + perRequest < width * height)

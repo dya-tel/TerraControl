@@ -1,6 +1,9 @@
 package dyatel.terracontrol;
 
+import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.window.Client;
+import dyatel.terracontrol.window.Server;
 
 import javax.swing.*;
 import java.awt.*;
@@ -70,13 +73,19 @@ public class Launcher extends JFrame {
         client.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    int port = Integer.parseInt(portField.getText());
                     int width = Integer.parseInt(widthField.getText());
                     int height = Integer.parseInt(heightField.getText());
-                    int cellSize = Integer.parseInt(cellSizeField.getText());
+
+                    // Checking if address can be parsed
                     InetAddress.getByName(addressField.getText());
 
-                    new Client(addressField.getText(), port, width, height, cellSize);
+                    // Putting data into data wrapper
+                    DataArray data = new DataArray();
+                    data.fillString("address", addressField.getText());
+                    data.fillInteger("port", portField.getText());
+                    data.fillInteger("cellSize", cellSizeField.getText());
+
+                    new Client(width, height, data);
                 } catch (Exception ex) {
                     debug.println("Error: wrong input!");
                 }
@@ -87,23 +96,27 @@ public class Launcher extends JFrame {
         server.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    int port = Integer.parseInt(portField.getText());
                     int width = Integer.parseInt(widthField.getText());
                     int height = Integer.parseInt(heightField.getText());
-                    int levelWidth = Integer.parseInt(levelWidthField.getText());
-                    int levelHeight = Integer.parseInt(levelHeightField.getText());
-                    int cellSize = Integer.parseInt(cellSizeField.getText());
-                    boolean fastGeneration = fastGenerationCheck.isSelected();
+
+                    // Putting data into data wrapper
+                    DataArray data = new DataArray();
+                    data.fillInteger("port", portField.getText());
+                    data.fillInteger("levelWidth", levelWidthField.getText());
+                    data.fillInteger("levelHeight", levelHeightField.getText());
+                    data.fillInteger("cellSize", cellSizeField.getText());
+                    data.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
 
                     String[] colorsR = colorsField.getText().split(" ");
-                    int[] colors = new int[colorsR.length];
+                    data.fillInteger("colors", colorsR.length);
                     for (int i = 0; i < colorsR.length; i++) {
-                        colors[i] = Integer.parseInt(colorsR[i], 16);
+                        data.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
                     }
 
-                    new Server(port, width, height, levelWidth, levelHeight, cellSize, colors, fastGeneration);
+                    new Server(width, height, data);
                 } catch (NumberFormatException ex) {
                     debug.println("Error: wrong input!");
+                    ex.printStackTrace();
                 }
             }
         });

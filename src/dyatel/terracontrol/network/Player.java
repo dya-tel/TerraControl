@@ -31,7 +31,6 @@ public class Player {
         level = master.getLevel();
 
         if (master.getOwner() == null) {
-            level.getDebug().println("Creating player at master " + master);
             this.master = master;
             master.setOwner(this);
         } else {

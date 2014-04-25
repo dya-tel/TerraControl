@@ -1,17 +1,14 @@
 package dyatel.terracontrol.level;
 
-import dyatel.terracontrol.Client;
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.network.ClientConnection;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.Color;
-import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.DataArray;
+import dyatel.terracontrol.window.GameWindow;
 
 import java.util.ArrayList;
 
 public class ClientLevel extends Level {
-
-    private Client client;
 
     private boolean initialized = false;
 
@@ -25,37 +22,30 @@ public class ClientLevel extends Level {
 
     private boolean needToMakeATurn = false;
 
-    public ClientLevel(int cellSize, Client client) {
-        super(cellSize, Debug.clientDebug);
-
-        this.client = client;
-
-        keyboard = client.getKeyboard();
-        mouse = client.getMouse();
-
-        mouse.setLevel(this);
+    public ClientLevel(int cellSize, GameWindow window) {
+        super(cellSize, window);
     }
 
-    public void init(int width, int height, int masters, int masterID, int ownerID, int enemyMaster, int enemyOwner, int[] colors, ClientConnection connection) {
-        this.width = width;
-        this.height = height;
-
+    public void init(DataArray data) {
+        width = data.getInteger("levelWidth");
+        height = data.getInteger("levelHeight");
         cells = new Cell[width * height];
 
+        // Getting colors from data
+        colors = new int[data.getInteger("colors")];
+        for (int i = 0; i < colors.length; i++) {
+            colors[i] = data.getInteger("color" + i);
+        }
+
         // Creating masters
-        this.masters = new ArrayList<CellMaster>();
-        for (int i = 0; i < masters; i++) {
+        masters = new ArrayList<CellMaster>();
+        for (int i = 0; i < data.getInteger("masters"); i++) {
             new CellMaster(0xffffffff, this);
         }
 
         // Placing owners
-        owner = new Player(this.masters.get(masterID), ownerID);
-        enemy = new Player(this.masters.get(enemyMaster), enemyOwner);
-
-        this.colors = colors;
-
-        // Requesting level
-        connection.receiveLevel();
+        owner = new Player(this.masters.get(data.getInteger("masterID")), data.getInteger("ownerID"));
+        enemy = new Player(this.masters.get(data.getInteger("enemyMaster")), data.getInteger("enemyOwner"));
 
         initialized = true;
     }
@@ -70,11 +60,11 @@ public class ClientLevel extends Level {
         mouseY = mouse.getY();
         mouseLX = Math.min((mouseX + xOff) / (getCellSize() + 1), mouseX);
         mouseLY = Math.min((mouseY + yOff) / (getCellSize() + 1), mouseY);
-        if (mouseY > client.getFieldHeight()) {
+        if (mouseY > window.getFieldHeight()) {
             mouseLX = -1;
             mouseLY = -1;
         }
-        client.statusBar[2] = mouseLX + " " + mouseLY;
+        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Getting cell and color under mouse
         currentCell = getCell(mouseLX, mouseLY);
@@ -93,11 +83,11 @@ public class ClientLevel extends Level {
         if (keys[13]) yOff += scrollRate;
 
         if (xOff < 0) xOff = 0;
-        if (xOff + client.getWidth() > width * (getCellSize() + 1) - 1)
-            xOff = Math.max(width * (getCellSize() + 1) - 1 - client.getWidth(), 0);
+        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
+            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
         if (yOff < 0) yOff = 0;
-        if (yOff + client.getFieldHeight() > height * (getCellSize() + 1) - 1)
-            yOff = Math.max(height * (getCellSize() + 1) - 1 - client.getFieldHeight(), 0);
+        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
+            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
 
         // Changing zoom by keyboard
         if (keys[7]) changeZoom(1);
@@ -106,19 +96,19 @@ public class ClientLevel extends Level {
         // Printing current state
         switch (state) {
             case -1:
-                client.statusBar[1] = "Waiting...";
+                window.statusBar[1] = "Waiting...";
                 break;
             case 0:
-                client.statusBar[1] = needToMakeATurn ? "Your move!" : "Wait...";
+                window.statusBar[1] = needToMakeATurn ? "Your move!" : "Wait...";
                 break;
             case 1:
-                client.statusBar[1] = "You won!";
+                window.statusBar[1] = "You won!";
                 break;
             case 2:
-                client.statusBar[1] = "You lost...";
+                window.statusBar[1] = "You lost...";
                 break;
             case 3:
-                client.statusBar[1] = "Draw.";
+                window.statusBar[1] = "Draw.";
                 break;
         }
 
@@ -143,7 +133,7 @@ public class ClientLevel extends Level {
                 }
             }
         }
-        client.statusBar[4] = String.valueOf(owner.getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
+        window.statusBar[4] = String.valueOf(owner.getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
 
         // Making a turn if needed
         if (needToMakeATurn && state == 0 && mouse.isClicked() && availableCells > 0) {
@@ -188,10 +178,10 @@ public class ClientLevel extends Level {
 
         // Render
         int yStart = yOff / (getCellSize() + 1);
-        int yEnd = Math.min(yStart + client.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
+        int yEnd = Math.min(yStart + window.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
         for (int y = yStart; y < yEnd; y++) {
             int xStart = xOff / (getCellSize() + 1);
-            int xEnd = Math.min(xStart + client.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
+            int xEnd = Math.min(xStart + window.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
                 CellMaster master = getMaster(x, y);

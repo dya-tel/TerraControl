@@ -1,10 +1,10 @@
 package dyatel.terracontrol.network;
 
-import dyatel.terracontrol.Client;
 import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.ClientLevel;
-import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.DataArray;
+import dyatel.terracontrol.window.Client;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 public class ClientConnection extends Connection {
 
-    private Client client;
+    private ClientLevel level;
 
     private InetAddress address;
     private int port;
@@ -28,16 +28,16 @@ public class ClientConnection extends Connection {
     private Thread eTurnReceiver;
 
     public ClientConnection(String address, int port, Client client) {
-        super(Debug.clientDebug);
+        super(client);
 
         try {
             this.address = InetAddress.getByName(address);
         } catch (UnknownHostException e) {
             e.printStackTrace();
+            return;
         }
         this.port = port;
 
-        this.client = client;
         level = client.getLevel();
 
         start();
@@ -52,22 +52,38 @@ public class ClientConnection extends Connection {
         final String prefix = message.substring(0, 4);
         final String[] dataR = message.substring(4).split("x");
 
-        final ClientLevel cLevel = (ClientLevel) level;
         if (prefix.equals("/da/")) {
-            debug.println("Connected!");
-            client.statusBar[0] = "";
+            if (!connected) {
+                debug.println("Connected!");
+                window.statusBar[0] = "";
 
-            // Placing all colors into array
-            int n = Integer.parseInt(dataR[7]);
-            int[] colors = new int[n];
-            for (int i = 0; i < n; i++) {
-                colors[i] = Integer.parseInt(dataR[8 + i]);
+                // Placing data into data wrapper
+                DataArray data = new DataArray();
+                data.fillInteger("levelWidth", dataR[0]);
+                data.fillInteger("levelHeight", dataR[1]);
+                data.fillInteger("masters", dataR[2]);
+                data.fillInteger("masterID", dataR[3]);
+                data.fillInteger("ownerID", dataR[4]);
+                data.fillInteger("enemyMaster", dataR[5]);
+                data.fillInteger("enemyOwner", dataR[6]);
+
+                // Placing all colors into array
+                int n = Integer.parseInt(dataR[7]);
+                data.fillInteger("colors", n);
+                for (int i = 0; i < n; i++) {
+                    data.fillInteger("color" + i, dataR[8 + i]);
+                }
+
+                // Initializing level with all data
+                level.init(data);
+
+                // Requesting level
+                receiveLevel();
+
+                connected = true;
             }
-            // Initializing level with all data
-            cLevel.init(Integer.parseInt(dataR[0]), Integer.parseInt(dataR[1]), Integer.parseInt(dataR[2]), Integer.parseInt(dataR[3]), Integer.parseInt(dataR[4]), Integer.parseInt(dataR[5]), Integer.parseInt(dataR[6]), colors, this);
-            connected = true;
         } else if (prefix.equals("/ma/")) {
-            ArrayList<CellMaster> masters = cLevel.getMasters();
+            ArrayList<CellMaster> masters = level.getMasters();
 
             int start = Integer.parseInt(dataR[0]);
             int end = Integer.parseInt(dataR[1]);
@@ -84,7 +100,7 @@ public class ClientConnection extends Connection {
                 debug.println("Received wrong masters, ignoring (received from " + start + ", need from " + receivedMasters + ")");
             }
 
-            client.statusBar[0] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
+            window.statusBar[0] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
         } else if (prefix.equals("/ce/")) {
             int start = Integer.parseInt(dataR[0]);
             int end = Integer.parseInt(dataR[1]);
@@ -103,27 +119,27 @@ public class ClientConnection extends Connection {
                 debug.println("Received wrong cells, ignoring (received from " + start + ", need from " + receivedCells + ")");
             }
 
-            client.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
+            window.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
         } else if (prefix.equals("/tu/")) {
             int turn = Integer.parseInt(dataR[0]);
 
-            if (turn == cLevel.getOwner().getTurns()) {
-                send("/to/" + turn + "x" + cLevel.getOwner().getLastTurn());
+            if (turn == level.getOwner().getTurns()) {
+                send("/to/" + turn + "x" + level.getOwner().getLastTurn());
                 receiveEnemyTurn();
             } else {
-                cLevel.needTurn();
+                level.needTurn();
             }
         } else if (prefix.equals("/te/")) {
             // Receiving enemy`s move
             int turn = Integer.parseInt(dataR[0]);
             int colorID = Integer.parseInt(dataR[1]);
 
-            if (turn == cLevel.getEnemy().getTurns() + 1) cLevel.getEnemy().addTurn(colorID);
+            if (turn == level.getEnemy().getTurns() + 1) level.getEnemy().addTurn(colorID);
         } else if (message.startsWith("/st/")) {
             int state = Integer.parseInt(message.substring(4));
 
             if (state == 0) receiveEnemyTurn();
-            cLevel.changeState(state);
+            level.changeState(state);
         }
     }
 
@@ -146,7 +162,6 @@ public class ClientConnection extends Connection {
                 }
             }
         };
-
         connecter.start();
     }
 
@@ -191,12 +206,11 @@ public class ClientConnection extends Connection {
                     }
                 }
 
-                client.statusBar[0] = "";
+                window.statusBar[0] = "";
                 level.ready();
                 send("/rd/");
             }
         };
-
         levelReceiver.start();
     }
 
@@ -204,7 +218,7 @@ public class ClientConnection extends Connection {
         if (eTurnReceiver != null) return;
         eTurnReceiver = new Thread("EnemyTurnReceiver") {
             public void run() {
-                while (running && ((ClientLevel) level).getState() == 0 && !((ClientLevel) level).isMyTurn()) {
+                while (running && level.getState() == 0 && !level.isMyTurn()) {
                     send("/te/");
                     try {
                         sleep(100);

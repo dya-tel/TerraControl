@@ -2,8 +2,8 @@ package dyatel.terracontrol.network;
 
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.ServerLevel;
-import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.Util;
+import dyatel.terracontrol.window.Server;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -11,16 +11,19 @@ import java.util.ArrayList;
 
 public class ServerConnection extends Connection {
 
+    private ServerLevel level;
+
     private Player[] players = new Player[2];
 
+    private Thread turnManager;
     private int currentPlayer;
-
     private int state = -1; // -1 - waiting connections, 0 - playing, 1 - end
 
-    public ServerConnection(ServerLevel level, int port) {
-        super(port, Debug.serverDebug);
+    public ServerConnection(int port, Server server) {
+        super(port, server);
 
-        this.level = level;
+        level = server.getLevel();
+
         start();
     }
 
@@ -35,7 +38,7 @@ public class ServerConnection extends Connection {
         final String[] dataR = message.substring(4).split("x");
 
         if (prefix.equals("/co/")) {
-            if (((ServerLevel) level).isGenerated()) {
+            if (level.isGenerated()) {
                 debug.println("Connection request from " + packet.getAddress() + ":" + packet.getPort() + "");
 
                 String data = "/da/" + level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size() + "x";
@@ -149,6 +152,10 @@ public class ServerConnection extends Connection {
         }
     }
 
+    protected void waitForThreads() throws InterruptedException {
+        if (turnManager != null) turnManager.join();
+    }
+
     public void createPlayers() {
         players[0] = new Player(0, 0, 0, level);
         players[1] = new Player(level.getWidth() - 1, level.getHeight() - 1, 1, level);
@@ -173,20 +180,21 @@ public class ServerConnection extends Connection {
 
     private void startTurnManager() {
         state = 0;
-        new Thread() {
+        turnManager = new Thread() {
             public void run() {
                 currentPlayer = Util.getRandom().nextInt(players.length);
 
-                while(running && state == 0) {
+                while (running && state == 0) {
                     send("/tu/" + (players[currentPlayer].getTurns() + 1), players[currentPlayer].getAddress(), players[currentPlayer].getPort());
                     try {
                         sleep(100);
-                    } catch(InterruptedException e) {
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
-        }.start();
+        };
+        turnManager.start();
     }
 
 }

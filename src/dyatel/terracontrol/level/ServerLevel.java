@@ -1,15 +1,14 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.Server;
-import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Util;
+import dyatel.terracontrol.window.GameWindow;
+import dyatel.terracontrol.window.Server;
 
 import java.util.Random;
 
 public class ServerLevel extends Level {
-
-    private Server server;
 
     private Random random = Util.getRandom();
 
@@ -18,24 +17,26 @@ public class ServerLevel extends Level {
 
     private long genStart;
 
-    public ServerLevel(int width, int height, int cellSize, int[] colors, boolean fastGeneration, Server server) {
-        super(cellSize, Debug.serverDebug);
+    public ServerLevel(DataArray data, GameWindow window) {
+        super(data.getInteger("cellSize"), window);
 
-        this.server = server;
+        init(data);
+    }
 
-        keyboard = server.getKeyboard();
-        mouse = server.getMouse();
-        mouse.setLevel(this);
-
-        this.width = width;
-        this.height = height;
-
+    public void init(DataArray data) {
+        width = data.getInteger("levelWidth");
+        height = data.getInteger("levelHeight");
         cells = new Cell[width * height];
 
-        this.colors = colors;
+        // Getting colors from data
+        colors = new int[data.getInteger("colors")];
+        for (int i = 0; i < colors.length; i++) {
+            colors[i] = data.getInteger("color" + i);
+        }
 
+        // Choosing generation way
         genStart = System.currentTimeMillis();
-        if (fastGeneration) {
+        if (data.getBoolean("fastGeneration")) {
             debug.println("Using fast generation...");
             // Fill field with masters
             for (int i = 0; i < cells.length; i++) {
@@ -73,11 +74,11 @@ public class ServerLevel extends Level {
 
         Cell currentCell = getCell(mouseLX, mouseLY);
         if (currentCell != null) {
-            server.statusBar[1] = String.valueOf(currentCell.getMaster().getID());
+            window.statusBar[1] = String.valueOf(currentCell.getMaster().getID());
         } else {
-            server.statusBar[1] = "null";
+            window.statusBar[1] = "null";
         }
-        server.statusBar[2] = mouseLX + " " + mouseLY;
+        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Updating tick rate
         if (keys[7] && keyDelay == -1) {
@@ -96,11 +97,11 @@ public class ServerLevel extends Level {
         if (keys[13]) yOff += scrollRate;
 
         if (xOff < 0) xOff = 0;
-        if (xOff + server.getWidth() > width * (getCellSize() + 1) - 1)
-            xOff = Math.max(width * (getCellSize() + 1) - 1 - server.getWidth(), 0);
+        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
+            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
         if (yOff < 0) yOff = 0;
-        if (yOff + server.getFieldHeight() > height * (getCellSize() + 1) - 1)
-            yOff = Math.max(height * (getCellSize() + 1) - 1 - server.getFieldHeight(), 0);
+        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
+            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
 
         // Updating all the things
         while (needUpdate.size() > 0) {
@@ -120,10 +121,10 @@ public class ServerLevel extends Level {
                 if (cells[i] != null) gen++;
             }
             if (gen != width * height) {
-                server.statusBar[0] = "Generated: " + gen * 100 / (width * height) + "%";
+                window.statusBar[0] = "Generated: " + gen * 100 / (width * height) + "%";
             } else {
                 debug.println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
-                server.statusBar[0] = "";
+                window.statusBar[0] = "";
 
                 int tempC = 0;
                 for (CellMaster master : masters) {
@@ -132,7 +133,7 @@ public class ServerLevel extends Level {
                 }
                 debug.println("Checking cells... " + ((tempC == width * height) ? "OK" : "Failed: " + tempC + "/" + width * height));
 
-                server.getConnection().createPlayers();
+                ((Server) window).getConnection().createPlayers();
 
                 generated = true;
                 ready();
@@ -155,7 +156,7 @@ public class ServerLevel extends Level {
             }
         }
         debug.println("Captured level!");
-        server.getConnection().gameOver();
+        ((Server) window).getConnection().gameOver();
         captured = true;
     }
 
@@ -164,10 +165,10 @@ public class ServerLevel extends Level {
 
         // Render
         int yStart = yOff / (getCellSize() + 1);
-        int yEnd = Math.min(yStart + server.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
+        int yEnd = Math.min(yStart + window.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
         for (int y = yStart; y < yEnd; y++) {
             int xStart = xOff / (getCellSize() + 1);
-            int xEnd = Math.min(xStart + server.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
+            int xEnd = Math.min(xStart + window.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
                 cells[x + y * width].render(screen, getMaster(x, y).getColor()); // Rendering

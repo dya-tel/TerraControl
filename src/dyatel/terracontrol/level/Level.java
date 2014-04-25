@@ -1,17 +1,21 @@
 package dyatel.terracontrol.level;
 
+import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.input.Keyboard;
 import dyatel.terracontrol.input.Mouse;
+import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.window.GameWindow;
 
 import java.util.ArrayList;
 
-public class Level {
+public abstract class Level {
 
+    protected GameWindow window; // Main window
     protected Debug debug; // Output
 
     protected int xOff, yOff; // Level offset
-    protected int scrollRate = 5;
+    protected int scrollRate = 5; // Pixels per update
 
     protected int cellSize;
     protected double zoom = 1;
@@ -37,14 +41,26 @@ public class Level {
 
     protected boolean ready = false;
 
-    protected Level(int cellSize, Debug debug) {
+    protected Level(int cellSize, GameWindow window) {
         this.cellSize = cellSize;
 
-        this.debug = debug;
+        this.window = window;
+        debug = window.getDebug();
+
+        // Receiving and initializing input
+        keyboard = window.getKeyboard();
+        mouse = window.getMouse();
+        mouse.setLevel(this);
 
         masters = new ArrayList<CellMaster>();
         needUpdate = new ArrayList<Updatable>();
     }
+
+    public abstract void init(DataArray data);
+
+    public abstract void update();
+
+    public abstract void render(Screen screen);
 
     public boolean canSetCell(int x, int y) {
         // If this coordinates belong to level and there is noting on them, returning true

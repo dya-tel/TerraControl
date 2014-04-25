@@ -1,7 +1,7 @@
 package dyatel.terracontrol.network;
 
-import dyatel.terracontrol.level.Level;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.window.GameWindow;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -9,25 +9,26 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-public class Connection {
+public abstract class Connection {
 
     public static final int BUFFER_SIZE = 1024;
 
+    protected GameWindow window;
     protected Debug debug;
 
     protected DatagramSocket socket;
 
     protected Thread receiver;
 
-    protected Level level;
-
     protected boolean running = false;
 
     protected int transmitted = 0;
     protected int received = 0;
 
-    public Connection(Debug debug) {
-        this.debug = debug;
+    public Connection(GameWindow window) {
+        this.window = window;
+        debug = window.getDebug();
+
         try {
             socket = new DatagramSocket();
             debug.println("Bound socket at " + socket.getLocalPort());
@@ -36,8 +37,10 @@ public class Connection {
         }
     }
 
-    public Connection(int port, Debug debug) {
-        this.debug = debug;
+    public Connection(int port, GameWindow window) {
+        this.window = window;
+        debug = window.getDebug();
+
         try {
             socket = new DatagramSocket(port);
             debug.println("Bound socket at " + socket.getLocalPort());
@@ -78,13 +81,9 @@ public class Connection {
         debug.println("Connection closed!");
     }
 
-    protected void process(DatagramPacket packet) {
+    protected abstract void process(DatagramPacket packet);
 
-    }
-
-    protected void waitForThreads() throws InterruptedException {
-
-    }
+    protected abstract void waitForThreads() throws InterruptedException;
 
     protected void send(String message, InetAddress address, int port) {
         DatagramPacket packet = new DatagramPacket(message.getBytes(), message.length(), address, port);

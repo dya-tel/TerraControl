@@ -1,6 +1,5 @@
 package dyatel.terracontrol.network;
 
-import dyatel.terracontrol.Server;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.ServerLevel;
 import dyatel.terracontrol.util.Debug;
@@ -50,9 +49,9 @@ public class ServerConnection extends Connection {
                 }
 
                 // Put colors into data
-                data += "x" + Server.colors.length;
-                for (int i = 0; i < Server.colors.length; i++) {
-                    data += "x" + Server.colors[i];
+                data += "x" + level.getColors().length;
+                for (int i = 0; i < level.getColors().length; i++) {
+                    data += "x" + level.getColors()[i];
                 }
 
                 send(data, address, port);

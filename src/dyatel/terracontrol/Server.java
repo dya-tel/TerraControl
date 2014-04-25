@@ -39,9 +39,7 @@ public class Server extends Canvas implements Runnable {
 
     public static final int statusBarHeight = 47;
 
-    public static int colors[] = new int[]{0xff0000, 0x00ff00, 0x0000ff};
-
-    Server(int port, int width, int height, int levelWidth, int levelHeight, int cellSize, boolean fastGeneration) {
+    Server(int port, int width, int height, int levelWidth, int levelHeight, int cellSize, int[] colors, boolean fastGeneration) {
         this.width = width;
         this.height = height;
         setSize(width, height);
@@ -69,17 +67,17 @@ public class Server extends Canvas implements Runnable {
 
         frame.setVisible(true);
 
-        start(port, cellSize, levelWidth, levelHeight, fastGeneration);
+        start(port, cellSize, levelWidth, levelHeight, colors, fastGeneration);
     }
 
-    public void start(int port, int cellSize, int levelWidth, int levelHeight, boolean fastGeneration) {
+    public void start(int port, int cellSize, int levelWidth, int levelHeight, int[] colors, boolean fastGeneration) {
         debug.println("Starting server...");
         running = true;
         thread = new Thread(this, "Server");
 
         // Initialization goes here
         screen = new Screen(width, height);
-        level = new ServerLevel(levelWidth, levelHeight, cellSize, fastGeneration, this);
+        level = new ServerLevel(levelWidth, levelHeight, cellSize, colors, fastGeneration, this);
 
         connection = new ServerConnection(level, port);
 
@@ -89,6 +87,7 @@ public class Server extends Canvas implements Runnable {
     public void stop() {
         debug.println("Stopping server...");
         running = false;
+
         connection.stop();
         try {
             thread.join();
@@ -183,7 +182,7 @@ public class Server extends Canvas implements Runnable {
     }
 
     public static void main(String[] args) {
-        new Server(8192, 500, 300, 55, 28, 8, false);
+        new Server(8192, 500, 300, 55, 28, 8, new int[]{0xff0000, 0x00ff00, 0x0000ff}, false);
     }
 
 }

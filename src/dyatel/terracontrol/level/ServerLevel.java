@@ -18,7 +18,7 @@ public class ServerLevel extends Level {
 
     private long genStart;
 
-    public ServerLevel(int width, int height, int cellSize, boolean fastGeneration, Server server) {
+    public ServerLevel(int width, int height, int cellSize, int[] colors, boolean fastGeneration, Server server) {
         super(cellSize, Debug.serverDebug);
 
         this.server = server;
@@ -32,7 +32,7 @@ public class ServerLevel extends Level {
 
         cells = new Cell[width * height];
 
-        colors = Server.colors;
+        this.colors = colors;
 
         genStart = System.currentTimeMillis();
         if (fastGeneration) {

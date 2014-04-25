@@ -35,6 +35,8 @@ public class Launcher extends JFrame {
         fastGenerationCheck.setHorizontalAlignment(JCheckBox.CENTER);
         fastGenerationCheck.setSelected(true);
 
+        final JTextField colorsField = new JTextField("ff0000 00ff00 0000ff");
+
         final JButton client = new JButton("Client");
         final JButton server = new JButton("Server");
 
@@ -55,6 +57,10 @@ public class Launcher extends JFrame {
         add(new JLabel("Fast generation"));
         add(new JLabel());
         add(fastGenerationCheck);
+
+        add(new JLabel("Colors"));
+        add(new JLabel());
+        add(colorsField);
 
         add(client);
         add(new JLabel());
@@ -89,7 +95,13 @@ public class Launcher extends JFrame {
                     int cellSize = Integer.parseInt(cellSizeField.getText());
                     boolean fastGeneration = fastGenerationCheck.isSelected();
 
-                    new Server(port, width, height, levelWidth, levelHeight, cellSize, fastGeneration);
+                    String[] colorsR = colorsField.getText().split(" ");
+                    int[] colors = new int[colorsR.length];
+                    for (int i = 0; i < colorsR.length; i++) {
+                        colors[i] = Integer.parseInt(colorsR[i], 16);
+                    }
+
+                    new Server(port, width, height, levelWidth, levelHeight, cellSize, colors, fastGeneration);
                 } catch (NumberFormatException ex) {
                     debug.println("Error: wrong input!");
                 }

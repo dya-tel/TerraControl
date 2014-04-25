@@ -1,6 +1,5 @@
 package dyatel.terracontrol.level;
 
-import dyatel.terracontrol.Server;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.Util;
 
@@ -29,7 +28,7 @@ public class CellMaster implements Updatable {
 
     public CellMaster(Level level) {
         // Calling this constructor means that field is not generated and we have to add cells ourselves
-        this(Server.colors[random.nextInt(Server.colors.length)], level);
+        this(level.getColors()[random.nextInt(level.getColors().length)], level);
         level.needUpdate(this);
     }
 

@@ -10,7 +10,8 @@ Launcher
 3. Address to connect (client only), server port (both client and server)
 4. Initial cell side in pixels
 5. Fast generation uses loop instead of level updates. Sometimes may be a lot slower than standard (server only)
-6. Running client and server
+6. Colors that will be used. Any amount, divided by spaces, RGB, in hex, without "0x" (ex. ff0000 - red) (server only)
+7. Running client and server
 
 Controls
 --------

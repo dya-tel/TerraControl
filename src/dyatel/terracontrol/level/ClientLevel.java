@@ -145,7 +145,6 @@ public class ClientLevel extends Level {
     public void ready() {
         // Updating all masters to find borders and etc
         for (CellMaster master : masters) needUpdate(master);
-        ready = true;
     }
 
     public Player getOwner() {

@@ -39,8 +39,6 @@ public abstract class Level {
 
     protected int[] colors;
 
-    protected boolean ready = false;
-
     protected Level(int cellSize, GameWindow window) {
         this.cellSize = cellSize;
 
@@ -106,14 +104,6 @@ public abstract class Level {
 
     public ArrayList<CellMaster> getMasters() {
         return masters;
-    }
-
-    public void ready() {
-        ready = true;
-    }
-
-    public boolean isReady() {
-        return ready;
     }
 
     public int[] getColors() {

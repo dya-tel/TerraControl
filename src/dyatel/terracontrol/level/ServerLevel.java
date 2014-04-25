@@ -136,7 +136,6 @@ public class ServerLevel extends Level {
                 ((Server) window).getConnection().createPlayers();
 
                 generated = true;
-                ready();
             }
         }
 

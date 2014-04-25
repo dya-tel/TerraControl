@@ -12,20 +12,8 @@ public class Debug {
         this.prefix = prefix;
     }
 
-    public void print(String s) {
-        System.out.print(prefix + " > " + s);
-    }
-
-    public void println() {
-        System.out.println();
-    }
-
     public void println(String s) {
         System.out.println(prefix + " > " + s);
-    }
-
-    public void println(int n) {
-        System.out.println(String.valueOf(n));
     }
 
 }

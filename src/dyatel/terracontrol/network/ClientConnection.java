@@ -46,7 +46,7 @@ public class ClientConnection extends Connection {
 
     protected void process(DatagramPacket packet) {
         final String message = new String(packet.getData()).trim();
-        debug.println(message);
+        //debug.println(message);
 
         // Get data from message
         final String prefix = message.substring(0, 4);
@@ -121,6 +121,8 @@ public class ClientConnection extends Connection {
             if (turn == cLevel.getEnemy().getTurns() + 1) cLevel.getEnemy().addTurn(colorID);
         } else if (message.startsWith("/st/")) {
             int state = Integer.parseInt(message.substring(4));
+
+            if (state == 0) receiveEnemyTurn();
             cLevel.changeState(state);
         }
     }
@@ -202,7 +204,7 @@ public class ClientConnection extends Connection {
         if (eTurnReceiver != null) return;
         eTurnReceiver = new Thread("EnemyTurnReceiver") {
             public void run() {
-                while (running && !((ClientLevel) level).isMyTurn()) {
+                while (running && ((ClientLevel) level).getState() == 0 && !((ClientLevel) level).isMyTurn()) {
                     send("/te/");
                     try {
                         sleep(100);

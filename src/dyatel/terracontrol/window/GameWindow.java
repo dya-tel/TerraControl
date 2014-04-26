@@ -44,7 +44,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
         // Creating window
         this.title = title;
-        frame = new JFrame("TerraControl client");
+        frame = new JFrame("TerraControl" + title);
         frame.setResizable(false);
         frame.add(this);
         frame.pack();

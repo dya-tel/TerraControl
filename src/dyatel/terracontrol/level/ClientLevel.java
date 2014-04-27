@@ -16,6 +16,7 @@ public class ClientLevel extends Level {
     private int state = -1; // -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
     private Cell currentCell; // Cell player is pointing on
+    private int currentColorID;
     public int currentColor;
 
     private boolean needToMakeATurn = false;
@@ -52,8 +53,10 @@ public class ClientLevel extends Level {
         // Getting cell and color under mouse
         currentCell = getCell(mouseLX, mouseLY);
         if (currentCell != null) {
-            currentColor = currentCell.getMaster().getColor();
+            currentColorID = currentCell.getMaster().getColorID();
+            currentColor = colors[currentCell.getMaster().getColorID()];
         } else {
+            currentColorID = -1;
             currentColor = 0;
         }
         window.statusBar[2] = mouseLX + " " + mouseLY;
@@ -86,7 +89,7 @@ public class ClientLevel extends Level {
         if (currentColor != 0) {
             ArrayList<CellMaster> neighbors = owner.getMaster().getNeighbors();
             for (CellMaster master : neighbors) {
-                if (master.getColor() == currentColor && master != enemy.getMaster()) {
+                if (master.getColorID() == currentColorID && master != enemy.getMaster()) {
                     availableCells += master.getCells().size();
                 }
             }
@@ -144,10 +147,10 @@ public class ClientLevel extends Level {
                 CellMaster master = getMaster(x, y);
 
                 // Calculating color
-                int color = Color.subtract(master.getColor(), 0xaa, 0xaa, 0xaa);
+                int color = Color.subtract(colors[master.getColorID()], 0xaa, 0xaa, 0xaa);
                 if (currentCell == null) {
-                    color = master.getColor();
-                } else if (master.getOwner() == owner || (master.getOwner() != enemy && owner.getMaster().isNeighbor(master) && master.getColor() == currentColor)) {
+                    color = colors[master.getColorID()];
+                } else if (master.getOwner() == owner || (master.getOwner() != enemy && owner.getMaster().isNeighbor(master) && master.getColorID() == currentColorID)) {
                     color = currentColor;
                 }
 

@@ -75,7 +75,7 @@ public class ServerConnection extends Connection {
                     int messageStart = start;
 
                     for (int i = start; i <= end; i++) {
-                        int color = level.getColorID(masters.get(i).getColor());
+                        int color = masters.get(i).getColorID();
                         temp = "/ma/" + messageStart + "x";
                         if ((temp + i + data + "x" + color).length() > Connection.BUFFER_SIZE) {
                             send(temp + (i - 1) + data, address, port);

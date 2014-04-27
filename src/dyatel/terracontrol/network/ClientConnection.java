@@ -83,9 +83,9 @@ public class ClientConnection extends Connection {
 
             if (start == receivedMasters) {
                 for (int i = start; i <= end; i++) {
-                    int masterColor = level.getColors()[Integer.parseInt(dataR[i - start + 2])];
+                    int masterColor = Integer.parseInt(dataR[i - start + 2]);
                     CellMaster master = masters.get(i);
-                    master.setColor(masterColor);
+                    master.setColorID(masterColor);
                     master.setID(i);
                     receivedMasters++;
                 }

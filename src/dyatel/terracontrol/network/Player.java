@@ -46,8 +46,8 @@ public class Player {
         return master;
     }
 
-    public int getColor() {
-        return master.getColor();
+    public int getColorID() {
+        return master.getColorID();
     }
 
     public InetAddress getAddress() {
@@ -78,7 +78,7 @@ public class Player {
     }
 
     public void addTurn(int colorID) {
-        master.setColor(level.getColors()[colorID]);
+        master.setColorID(colorID);
         level.needUpdate(master);
 
         lastTurn = colorID;

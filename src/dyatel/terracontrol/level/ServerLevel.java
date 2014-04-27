@@ -142,7 +142,7 @@ public class ServerLevel extends Level {
             int xEnd = Math.min(xStart + window.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
-                cells[x + y * width].render(screen, getMaster(x, y).getColor()); // Rendering
+                cells[x + y * width].render(screen, colors[getMaster(x, y).getColorID()]); // Rendering
             }
         }
     }

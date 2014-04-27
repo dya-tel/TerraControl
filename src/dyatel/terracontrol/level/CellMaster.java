@@ -28,13 +28,13 @@ public class CellMaster implements Updatable {
 
     public CellMaster(Level level) {
         // Calling this constructor means that field is not generated and we have to add cells ourselves
-        this(level.getColors()[random.nextInt(level.getColors().length)], level);
+        this(random.nextInt(level.getColors().length), level);
         level.needUpdate(this);
     }
 
-    public CellMaster(int color, Level level) {
+    public CellMaster(int colorID, Level level) {
         // Calling this constructor means that field is generated and cells will add themselves
-        this.color = color;
+        color = colorID;
         this.level = level;
 
         level.add(this);
@@ -58,7 +58,7 @@ public class CellMaster implements Updatable {
     private void checkNeighbor(int x, int y) {
         if (level.getCell(x, y) != null) {
             CellMaster neighbor = level.getMaster(x, y);
-            if (neighbor != this && neighbor.getColor() == color && (neighbor.getOwner() == owner || neighbor.getOwner() == null)) {
+            if (neighbor != this && neighbor.getColorID() == color && (neighbor.getOwner() == owner || neighbor.getOwner() == null)) {
                 neighbor.merge(this); // Merging with neighbor if needed
             } else {
                 if (!neighbors.contains(neighbor) && neighbor != this) neighbors.add(neighbor);
@@ -118,11 +118,11 @@ public class CellMaster implements Updatable {
         } while (newCells.size() > 0); // We should update at least one time to calculate neighbors
     }
 
-    public void setColor(int color) {
+    public void setColorID(int color) {
         this.color = color;
     }
 
-    public int getColor() {
+    public int getColorID() {
         return color;
     }
 

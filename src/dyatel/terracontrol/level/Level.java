@@ -68,8 +68,8 @@ public abstract class Level {
         // Updating mouse coordinates
         mouseX = mouse.getX();
         mouseY = mouse.getY();
-        mouseLX = Math.min((mouseX + xOff) / (getCellSize() + 1), mouseX);
-        mouseLY = Math.min((mouseY + yOff) / (getCellSize() + 1), mouseY);
+        mouseLX = Math.min((mouseX + xOff) / (getCellSize() + 1), width);
+        mouseLY = Math.min((mouseY + yOff) / (getCellSize() + 1), height);
         if (mouseY > window.getFieldHeight()) {
             mouseLX = -1;
             mouseLY = -1;
@@ -93,7 +93,7 @@ public abstract class Level {
         // Update-on-demand
         while (needUpdate.size() > 0) {
             Updatable u = needUpdate.get(0);
-            if (!u.isRemoved()) {
+            if (u != null && !u.isRemoved()) {
                 u.update();
             } else {
                 if (u instanceof CellMaster) masters.remove(u);

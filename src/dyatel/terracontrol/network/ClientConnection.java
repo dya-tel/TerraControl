@@ -25,8 +25,6 @@ public class ClientConnection extends Connection {
     private int receivedMasters = 0;
     private int receivedCells = 0;
 
-    private Thread eTurnReceiver;
-
     public ClientConnection(String address, int port, Client client) throws Exception {
         super(client);
 
@@ -117,10 +115,15 @@ public class ClientConnection extends Connection {
             window.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
         } else if (prefix.equals("/tu/")) {
             int turn = Integer.parseInt(dataR[0]);
+            int enemyTurn = Integer.parseInt(dataR[1]);
+            int enemyColor = Integer.parseInt(dataR[2]);
 
+            // Getting enemy`s turn
+            if (enemyColor != -1 && enemyTurn == level.getEnemy().getTurns() + 1) level.getEnemy().addTurn(enemyColor);
+
+            // Making out turn
             if (turn == level.getOwner().getTurns()) {
                 send("/to/" + turn + "x" + level.getOwner().getLastTurn());
-                receiveEnemyTurn();
             } else {
                 level.needTurn();
             }
@@ -132,8 +135,6 @@ public class ClientConnection extends Connection {
             if (turn == level.getEnemy().getTurns() + 1) level.getEnemy().addTurn(colorID);
         } else if (message.startsWith("/st/")) {
             int state = Integer.parseInt(message.substring(4));
-
-            if (state == 0) receiveEnemyTurn();
             level.changeState(state);
         }
     }
@@ -141,7 +142,6 @@ public class ClientConnection extends Connection {
     protected void waitForThreads() throws InterruptedException {
         if (connecter != null) connecter.join();
         if (levelReceiver != null) levelReceiver.join();
-        if (eTurnReceiver != null) eTurnReceiver.join();
     }
 
     public void connect() {
@@ -207,24 +207,6 @@ public class ClientConnection extends Connection {
             }
         };
         levelReceiver.start();
-    }
-
-    public void receiveEnemyTurn() {
-        if (eTurnReceiver != null) return;
-        eTurnReceiver = new Thread("EnemyTurnReceiver") {
-            public void run() {
-                while (running && level.getState() == 0 && !level.isMyTurn()) {
-                    send("/te/");
-                    try {
-                        sleep(100);
-                    } catch (InterruptedException e) {
-                        ErrorLogger.add(e);
-                    }
-                }
-                eTurnReceiver = null;
-            }
-        };
-        eTurnReceiver.start();
     }
 
     public void send(String message) {

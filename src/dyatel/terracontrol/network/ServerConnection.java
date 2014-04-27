@@ -186,7 +186,8 @@ public class ServerConnection extends Connection {
                 currentPlayer = Util.getRandom().nextInt(players.length);
 
                 while (running && state == 0) {
-                    send("/tu/" + (players[currentPlayer].getTurns() + 1), players[currentPlayer].getAddress(), players[currentPlayer].getPort());
+                    int otherPlayer = currentPlayer == 0 ? 1 : 0;
+                    send("/tu/" + (players[currentPlayer].getTurns() + 1) + "x" + players[otherPlayer].getTurns() + "x" + players[otherPlayer].getLastTurn(), players[currentPlayer].getAddress(), players[currentPlayer].getPort());
                     try {
                         sleep(100);
                     } catch (InterruptedException e) {

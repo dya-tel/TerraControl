@@ -68,9 +68,10 @@ public abstract class Level {
         // Updating mouse coordinates
         mouseX = mouse.getX();
         mouseY = mouse.getY();
-        mouseLX = Math.min((mouseX + xOff) / (getCellSize() + 1), width);
-        mouseLY = Math.min((mouseY + yOff) / (getCellSize() + 1), height);
-        if (mouseY > window.getFieldHeight()) {
+        if (mouseX > -1 && mouseY > -1 && mouseY < window.getFieldHeight()) {
+            mouseLX = (mouseX + xOff) / (getCellSize() + 1);
+            mouseLY = (mouseY + yOff) / (getCellSize() + 1);
+        } else {
             mouseLX = -1;
             mouseLY = -1;
         }

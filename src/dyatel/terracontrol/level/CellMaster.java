@@ -46,45 +46,13 @@ public class CellMaster implements Updatable {
 
     public void merge(CellMaster master) {
         // Updating cell lists and setting new master to each cell
-        updateCellLists();
+        cells.addAll(newCells); // We must not ignore new cells if we haven`t been updated
         for (Cell cell : cells) cell.setMaster(master);
 
         // Just giving cells, cause we`ll be deleted and other master already has right color and owner
         master.addCells(cells);
 
         remove(); // Removing ourselves because we merged with other master
-    }
-
-    private void updateCellLists() {
-        // Return if nothing changed
-        if (newCells.size() == 0) {
-            return;
-        }
-
-        // Adding all new cells
-        cells.addAll(newCells);
-        newCells.clear();
-
-        // Recalculating borders
-        borderCells.clear();
-        for (Cell cell : cells) {
-            // If at least one cell contacts with other master (or no master) then it`s placed on border
-            if (level.getMaster(cell.getX() - 1, cell.getY()) != this ||
-                    level.getMaster(cell.getX(), cell.getY() - 1) != this ||
-                    level.getMaster(cell.getX() + 1, cell.getY()) != this ||
-                    level.getMaster(cell.getX(), cell.getY() + 1) != this)
-                borderCells.add(cell);
-        }
-    }
-
-    private void updateNeighbors() {
-        neighbors.clear();
-        for (Cell cell : borderCells) {
-            checkNeighbor(cell.getX(), cell.getY() - 1);
-            checkNeighbor(cell.getX() + 1, cell.getY());
-            checkNeighbor(cell.getX(), cell.getY() + 1);
-            checkNeighbor(cell.getX() - 1, cell.getY());
-        }
     }
 
     private void checkNeighbor(int x, int y) {
@@ -125,9 +93,29 @@ public class CellMaster implements Updatable {
     public void update() {
         // Updating while updates change something
         do {
-            updateCellLists();
-            updateNeighbors();
-        } while (newCells.size() > 0);
+            // Adding all new cells
+            cells.addAll(newCells);
+            newCells.clear();
+
+            // Recalculating borders
+            neighbors.clear();
+            borderCells.clear();
+            for (Cell cell : cells) {
+                // If at least one cell contacts with other master (or no master) then it`s placed on border
+                if (level.getMaster(cell.getX() - 1, cell.getY()) != this ||
+                        level.getMaster(cell.getX(), cell.getY() - 1) != this ||
+                        level.getMaster(cell.getX() + 1, cell.getY()) != this ||
+                        level.getMaster(cell.getX(), cell.getY() + 1) != this) {
+                    borderCells.add(cell); // Need this to generate level
+
+                    // Finding neighbors
+                    checkNeighbor(cell.getX(), cell.getY() - 1);
+                    checkNeighbor(cell.getX() + 1, cell.getY());
+                    checkNeighbor(cell.getX(), cell.getY() + 1);
+                    checkNeighbor(cell.getX() - 1, cell.getY());
+                }
+            }
+        } while (newCells.size() > 0); // We should update at least one time to calculate neighbors
     }
 
     public void setColor(int color) {

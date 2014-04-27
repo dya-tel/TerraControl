@@ -16,6 +16,10 @@ public class ErrorLogger {
     public static void add(Exception e) {
         if (canAdd) {
             System.err.println("Something went wrong! Close your launcher and check \"errors\" directory!");
+            for (Exception err : errors) {
+                // Don`t add same exception to log
+                if (err.toString().equals(e.toString())) return;
+            }
             errors.add(e);
         }
     }

@@ -95,17 +95,17 @@ public abstract class GameWindow extends Canvas implements Runnable {
             currentNanoTime = System.nanoTime();
             delta += (currentNanoTime - lastNanoTime) / 1000000000.0 * ups;
             lastNanoTime = currentNanoTime;
-            while (delta >= 1) {
-                try {
+            try {
+                while (delta >= 1) {
                     update();
-                } catch (Exception e) {
-                    ErrorLogger.add(e);
+                    updates++;
+                    delta--;
                 }
-                updates++;
-                delta--;
+                render();
+                frames++;
+            } catch (Exception e) {
+                ErrorLogger.add(e);
             }
-            render();
-            frames++;
 
             if (System.currentTimeMillis() - timer >= 1000) {
                 timer = System.currentTimeMillis();

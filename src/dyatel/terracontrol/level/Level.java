@@ -14,6 +14,8 @@ public abstract class Level {
     protected GameWindow window; // Main window
     protected Debug debug; // Output
 
+    protected boolean initialized = false;
+
     protected int xOff, yOff; // Level offset
     protected int scrollRate = 5; // Pixels per update
 
@@ -24,6 +26,7 @@ public abstract class Level {
 
     protected Keyboard keyboard; // Keyboard listener
     protected int keyDelay; // Timer that restricts pressing a key every update (60 times per second!)
+    protected boolean[] keys;
 
     protected Mouse mouse; // Mouse listener
     protected int mouseX, mouseY; // Real mouse coordinates based on position in window
@@ -56,7 +59,54 @@ public abstract class Level {
 
     public abstract void init(DataArray data);
 
-    public abstract void update();
+    public final void update() {
+        // Updating input
+        // Updating key delay, getting key state
+        if (keyDelay > -1) keyDelay--;
+        keys = keyboard.getKeys();
+
+        // Updating mouse coordinates
+        mouseX = mouse.getX();
+        mouseY = mouse.getY();
+        mouseLX = Math.min((mouseX + xOff) / (getCellSize() + 1), mouseX);
+        mouseLY = Math.min((mouseY + yOff) / (getCellSize() + 1), mouseY);
+        if (mouseY > window.getFieldHeight()) {
+            mouseLX = -1;
+            mouseLY = -1;
+        }
+
+        // Updating offset if needed
+        if (keys[10]) xOff -= scrollRate;
+        if (keys[11]) yOff -= scrollRate;
+        if (keys[12]) xOff += scrollRate;
+        if (keys[13]) yOff += scrollRate;
+
+        if (xOff < 0) xOff = 0;
+        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
+            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
+        if (yOff < 0) yOff = 0;
+        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
+            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
+
+        if (!initialized) return;
+
+        // Update-on-demand
+        while (needUpdate.size() > 0) {
+            Updatable u = needUpdate.get(0);
+            if (!u.isRemoved()) {
+                u.update();
+            } else {
+                if (u instanceof CellMaster) masters.remove(u);
+            }
+            needUpdate.remove(0);
+        }
+
+        // Server/client update
+        sideUpdate();
+    }
+
+    // One-side update, specific for client and server
+    protected abstract void sideUpdate();
 
     public abstract void render(Screen screen);
 

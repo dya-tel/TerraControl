@@ -10,8 +10,6 @@ import java.util.ArrayList;
 
 public class ClientLevel extends Level {
 
-    private boolean initialized = false;
-
     private Player owner;
     private Player enemy;
 
@@ -50,22 +48,7 @@ public class ClientLevel extends Level {
         initialized = true;
     }
 
-    public void update() {
-        // Updating key delay, getting key state
-        if (keyDelay > -1) keyDelay--;
-        boolean[] keys = keyboard.getKeys();
-
-        // Updating mouse coordinates, printing them
-        mouseX = mouse.getX();
-        mouseY = mouse.getY();
-        mouseLX = Math.min((mouseX + xOff) / (getCellSize() + 1), mouseX);
-        mouseLY = Math.min((mouseY + yOff) / (getCellSize() + 1), mouseY);
-        if (mouseY > window.getFieldHeight()) {
-            mouseLX = -1;
-            mouseLY = -1;
-        }
-        window.statusBar[2] = mouseLX + " " + mouseLY;
-
+    protected void sideUpdate() {
         // Getting cell and color under mouse
         currentCell = getCell(mouseLX, mouseLY);
         if (currentCell != null) {
@@ -73,21 +56,7 @@ public class ClientLevel extends Level {
         } else {
             currentColor = 0;
         }
-
-        if (!initialized) return;
-
-        // Updating offset if needed
-        if (keys[10]) xOff -= scrollRate;
-        if (keys[11]) yOff -= scrollRate;
-        if (keys[12]) xOff += scrollRate;
-        if (keys[13]) yOff += scrollRate;
-
-        if (xOff < 0) xOff = 0;
-        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
-            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
-        if (yOff < 0) yOff = 0;
-        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
-            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
+        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Changing zoom by keyboard
         if (keys[7]) changeZoom(1);
@@ -110,17 +79,6 @@ public class ClientLevel extends Level {
             case 3:
                 window.statusBar[1] = "Draw.";
                 break;
-        }
-
-        // Updating all the things
-        while (needUpdate.size() > 0) {
-            Updatable u = needUpdate.get(0);
-            if (!u.isRemoved()) {
-                u.update();
-            } else {
-                if (u instanceof CellMaster) masters.remove(u);
-            }
-            needUpdate.remove(0);
         }
 
         // Calculating number of cells that we can capture

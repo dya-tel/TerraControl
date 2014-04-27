@@ -46,6 +46,8 @@ public class ServerLevel extends Level {
             debug.println("Using standard generation...");
             addMasters(width * height * 4 / 5, width * height * 5 / 5); // Standard generation
         }
+
+        initialized = true;
     }
 
     private void addMasters(int min, int max) {
@@ -61,17 +63,7 @@ public class ServerLevel extends Level {
         debug.println("Added " + this.masters.size() + " masters");
     }
 
-    public void update() {
-        // Updating key delay, getting key state
-        if (keyDelay > -1) keyDelay--;
-        boolean[] keys = keyboard.getKeys();
-
-        // Updating mouse
-        mouseX = Math.min(mouse.getX() / (getCellSize() + 1), mouse.getX());
-        mouseY = Math.min(mouse.getY() / (getCellSize() + 1), mouse.getY());
-        mouseLX = Math.min((mouse.getX() + xOff) / (getCellSize() + 1), mouse.getX());
-        mouseLY = Math.min((mouse.getY() + yOff) / (getCellSize() + 1), mouse.getY());
-
+    protected void sideUpdate() {
         Cell currentCell = getCell(mouseLX, mouseLY);
         if (currentCell != null) {
             window.statusBar[1] = String.valueOf(currentCell.getMaster().getID());
@@ -88,30 +80,6 @@ public class ServerLevel extends Level {
         if (keys[8] && keyDelay == -1) {
             keyDelay = 10;
             if (delay > 1) delay--;
-        }
-
-        // Updating offset if needed
-        if (keys[10]) xOff -= scrollRate;
-        if (keys[11]) yOff -= scrollRate;
-        if (keys[12]) xOff += scrollRate;
-        if (keys[13]) yOff += scrollRate;
-
-        if (xOff < 0) xOff = 0;
-        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
-            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
-        if (yOff < 0) yOff = 0;
-        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
-            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
-
-        // Updating all the things
-        while (needUpdate.size() > 0) {
-            Updatable u = needUpdate.get(0);
-            if (!u.isRemoved()) {
-                u.update();
-            } else {
-                if (u instanceof CellMaster) masters.remove(u);
-            }
-            needUpdate.remove(0);
         }
 
         // Checking and showing generation progress
@@ -159,6 +127,10 @@ public class ServerLevel extends Level {
         captured = true;
     }
 
+    public boolean isGenerated() {
+        return generated;
+    }
+
     public void render(Screen screen) {
         screen.setOffset(xOff, yOff);
 
@@ -173,10 +145,6 @@ public class ServerLevel extends Level {
                 cells[x + y * width].render(screen, getMaster(x, y).getColor()); // Rendering
             }
         }
-    }
-
-    public boolean isGenerated() {
-        return generated;
     }
 
 }

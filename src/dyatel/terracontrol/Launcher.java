@@ -2,6 +2,7 @@ package dyatel.terracontrol;
 
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.window.Client;
 import dyatel.terracontrol.window.Server;
 
@@ -70,6 +71,8 @@ public class Launcher extends JFrame {
         add(server);
         pack();
 
+        setLocationRelativeTo(null);
+
         client.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -121,7 +124,12 @@ public class Launcher extends JFrame {
             }
         });
 
-        setLocationRelativeTo(null);
+        // Things to do on exit
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                ErrorLogger.close(); // Filling error log
+            }
+        });
 
         setVisible(true);
     }

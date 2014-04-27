@@ -5,6 +5,7 @@ import dyatel.terracontrol.level.ClientLevel;
 import dyatel.terracontrol.network.ClientConnection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.ErrorLogger;
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
@@ -23,15 +24,20 @@ public class Client extends GameWindow {
     protected void start(DataArray data) {
         debug.println("Starting client...");
 
-        // Initialization goes here
-        screen = new Screen(width, height);
-        level = new ClientLevel(data.getInteger("cellSize"), this);
-        connection = new ClientConnection(data.getString("address"), data.getInteger("port"), this);
+        try {
+            // Initialization goes here
+            screen = new Screen(width, height);
+            level = new ClientLevel(data.getInteger("cellSize"), this);
+            connection = new ClientConnection(data.getString("address"), data.getInteger("port"), this);
 
-        // Starting main loop
-        thread = new Thread(this, "Client");
-        running = true;
-        thread.start();
+            // Starting main loop
+            thread = new Thread(this, "Client");
+            running = true;
+            thread.start();
+        } catch (Exception e) {
+            ErrorLogger.add(e);
+            frame.setVisible(false);
+        }
     }
 
     protected void update() {

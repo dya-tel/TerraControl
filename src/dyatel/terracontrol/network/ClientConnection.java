@@ -4,11 +4,11 @@ import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.ClientLevel;
 import dyatel.terracontrol.util.DataArray;
+import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.window.Client;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 public class ClientConnection extends Connection {
@@ -27,15 +27,10 @@ public class ClientConnection extends Connection {
 
     private Thread eTurnReceiver;
 
-    public ClientConnection(String address, int port, Client client) {
+    public ClientConnection(String address, int port, Client client) throws Exception {
         super(client);
 
-        try {
-            this.address = InetAddress.getByName(address);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-            return;
-        }
+        this.address = InetAddress.getByName(address);
         this.port = port;
 
         level = client.getLevel();
@@ -157,7 +152,7 @@ public class ClientConnection extends Connection {
                         send("/co/");
                         sleep(1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        ErrorLogger.add(e);
                     }
                 }
             }
@@ -186,7 +181,7 @@ public class ClientConnection extends Connection {
 
                         sleep(100);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        ErrorLogger.add(e);
                     }
                 }
 
@@ -202,7 +197,7 @@ public class ClientConnection extends Connection {
 
                         sleep(100);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        ErrorLogger.add(e);
                     }
                 }
 
@@ -223,7 +218,7 @@ public class ClientConnection extends Connection {
                     try {
                         sleep(100);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        ErrorLogger.add(e);
                     }
                 }
                 eTurnReceiver = null;

@@ -1,10 +1,10 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
+import dyatel.terracontrol.network.ServerConnection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Util;
 import dyatel.terracontrol.window.GameWindow;
-import dyatel.terracontrol.window.Server;
 
 import java.util.Random;
 
@@ -101,7 +101,7 @@ public class ServerLevel extends Level {
                 }
                 debug.println("Checking cells... " + ((tempC == width * height) ? "OK" : "Failed: " + tempC + "/" + width * height));
 
-                ((Server) window).getConnection().createPlayers();
+                ((ServerConnection) window.getConnection()).createPlayers();
 
                 generated = true;
             }
@@ -123,7 +123,7 @@ public class ServerLevel extends Level {
             }
         }
         debug.println("Captured level!");
-        ((Server) window).getConnection().gameOver();
+        ((ServerConnection) window.getConnection()).gameOver();
         captured = true;
     }
 

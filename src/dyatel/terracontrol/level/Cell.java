@@ -24,17 +24,17 @@ public class Cell {
 
     public void render(Screen screen, int color) {
         int cellSize = level.getCellSize();
-        int x = this.x * (cellSize + 1);
-        int y = this.y * (cellSize + 1);
+        int xp = x * (cellSize + 1);
+        int yp = y * (cellSize + 1);
         int width = cellSize;
         int height = cellSize;
 
         if (master.getOwner() != null) {
-            if (level.getMaster(this.x + 1, this.y) == master) width++;
-            if (level.getMaster(this.x, this.y + 1) == master) height++;
+            if (level.getMaster(x + 1, y) == master) width++;
+            if (level.getMaster(x, y + 1) == master) height++;
         }
 
-        screen.render(x, y, x + width, y + height, color, true);
+        screen.render(xp, yp, xp + width, yp + height, color, true);
     }
 
     public int getX() {

@@ -2,6 +2,7 @@ package dyatel.terracontrol.network;
 
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.ServerLevel;
+import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.util.Util;
 import dyatel.terracontrol.window.Server;
 
@@ -19,7 +20,7 @@ public class ServerConnection extends Connection {
     private int currentPlayer;
     private int state = -1; // -1 - waiting connections, 0 - playing, 1 - end
 
-    public ServerConnection(int port, Server server) {
+    public ServerConnection(int port, Server server) throws Exception {
         super(port, server);
 
         level = server.getLevel();
@@ -189,7 +190,7 @@ public class ServerConnection extends Connection {
                     try {
                         sleep(100);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        ErrorLogger.add(e);
                     }
                 }
             }

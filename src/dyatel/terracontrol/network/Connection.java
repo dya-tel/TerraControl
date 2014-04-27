@@ -1,13 +1,13 @@
 package dyatel.terracontrol.network;
 
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.window.GameWindow;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 
 public abstract class Connection {
 
@@ -19,34 +19,25 @@ public abstract class Connection {
     protected DatagramSocket socket;
 
     protected Thread receiver;
-
     protected boolean running = false;
 
     protected int transmitted = 0;
     protected int received = 0;
 
-    public Connection(GameWindow window) {
+    public Connection(GameWindow window) throws Exception {
         this.window = window;
         debug = window.getDebug();
 
-        try {
-            socket = new DatagramSocket();
-            debug.println("Bound socket at " + socket.getLocalPort());
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+        socket = new DatagramSocket();
+        debug.println("Bound socket at " + socket.getLocalPort());
     }
 
-    public Connection(int port, GameWindow window) {
+    public Connection(int port, GameWindow window) throws Exception {
         this.window = window;
         debug = window.getDebug();
 
-        try {
-            socket = new DatagramSocket(port);
-            debug.println("Bound socket at " + socket.getLocalPort());
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+        socket = new DatagramSocket(port);
+        debug.println("Bound socket at " + socket.getLocalPort());
     }
 
     protected void start() {
@@ -58,7 +49,7 @@ public abstract class Connection {
                     } catch (IOException e) {
                         debug.println("Socket closed!");
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        ErrorLogger.add(e);
                     }
                 }
             }
@@ -76,7 +67,7 @@ public abstract class Connection {
             waitForThreads();
             receiver.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            ErrorLogger.add(e);
         }
         debug.println("Connection closed!");
     }
@@ -91,7 +82,7 @@ public abstract class Connection {
             socket.send(packet);
             transmitted += packet.getLength();
         } catch (IOException e) {
-            e.printStackTrace();
+            ErrorLogger.add(e);
         }
     }
 

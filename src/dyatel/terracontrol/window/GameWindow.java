@@ -7,6 +7,7 @@ import dyatel.terracontrol.level.Level;
 import dyatel.terracontrol.network.Connection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.ErrorLogger;
 
 import javax.swing.*;
 import java.awt.*;
@@ -75,11 +76,11 @@ public abstract class GameWindow extends Canvas implements Runnable {
         debug.println("Stopping" + title + "...");
         running = false;
 
-        connection.stop();
+        if (connection != null) connection.stop();
         try {
-            thread.join();
+            if (thread != null) thread.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            ErrorLogger.add(e);
         }
     }
 
@@ -95,7 +96,11 @@ public abstract class GameWindow extends Canvas implements Runnable {
             delta += (currentNanoTime - lastNanoTime) / 1000000000.0 * ups;
             lastNanoTime = currentNanoTime;
             while (delta >= 1) {
-                update();
+                try {
+                    update();
+                } catch (Exception e) {
+                    ErrorLogger.add(e);
+                }
                 updates++;
                 delta--;
             }

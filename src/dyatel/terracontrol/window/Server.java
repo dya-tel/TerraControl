@@ -5,6 +5,7 @@ import dyatel.terracontrol.level.ServerLevel;
 import dyatel.terracontrol.network.ServerConnection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.util.ErrorLogger;
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
@@ -23,15 +24,20 @@ public class Server extends GameWindow {
     protected void start(DataArray data) {
         debug.println("Starting server...");
 
-        // Initialization goes here
-        screen = new Screen(width, height);
-        level = new ServerLevel(data, this);
-        connection = new ServerConnection(data.getInteger("port"), this);
+        try {
+            // Initialization goes here
+            screen = new Screen(width, height);
+            level = new ServerLevel(data, this);
+            connection = new ServerConnection(data.getInteger("port"), this);
 
-        // Starting main loop
-        thread = new Thread(this, "Server");
-        running = true;
-        thread.start();
+            // Starting main loop
+            thread = new Thread(this, "Server");
+            running = true;
+            thread.start();
+        } catch (Exception e) {
+            ErrorLogger.add(e);
+            frame.setVisible(false);
+        }
     }
 
     protected void update() {

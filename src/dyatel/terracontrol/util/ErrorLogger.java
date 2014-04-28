@@ -1,5 +1,8 @@
 package dyatel.terracontrol.util;
 
+import dyatel.terracontrol.Launcher;
+
+import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -15,11 +18,14 @@ public class ErrorLogger {
 
     public static void add(Exception e) {
         if (canAdd) {
-            System.err.println("Something went wrong! Close your launcher and check \"errors\" directory!");
-            for (Exception err : errors) {
-                // Don`t add same exception to log
-                if (err.toString().equals(e.toString())) return;
-            }
+            // Checking if already have same exception
+            for (Exception err : errors) if (err.toString().equals(e.toString())) return;
+
+            // Creating error dialog
+            String message = "Something went wrong!\nClose your launcher and check \"errors\" directory!";
+            JOptionPane.showMessageDialog(Launcher.getLauncher(), message, "TerraControl Error", JOptionPane.ERROR_MESSAGE);
+
+            // Adding exception to log
             errors.add(e);
         }
     }

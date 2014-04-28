@@ -14,6 +14,8 @@ import java.net.InetAddress;
 
 public class Launcher extends JFrame {
 
+    private static Launcher launcher = null;
+
     Launcher() {
         final Debug debug = Debug.launcherDebug;
 
@@ -124,6 +126,8 @@ public class Launcher extends JFrame {
             }
         });
 
+        launcher = this;
+
         // Things to do on exit
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -132,6 +136,10 @@ public class Launcher extends JFrame {
         });
 
         setVisible(true);
+    }
+
+    public static Launcher getLauncher() {
+        return launcher;
     }
 
     public static void main(String[] args) {

@@ -16,7 +16,7 @@ public class ErrorLogger {
 
     private static ArrayList<Exception> errors = new ArrayList<Exception>();
 
-    public static void add(Exception e) {
+    public synchronized static void add(Exception e) {
         if (canAdd) {
             // Checking if already have same exception
             for (Exception err : errors) if (err.toString().equals(e.toString())) return;

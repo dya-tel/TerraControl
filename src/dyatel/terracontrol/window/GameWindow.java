@@ -33,7 +33,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
     public String[] statusBar = {"", "", "", "", "", ""}; // Output on bottom panel
 
-    protected static final int ups = 60; // Updates per second
+    protected static final int ups = 30; // Updates per second
     protected static final int statusBarHeight = 47; // Vertical size of bottom panel
     protected static final Font font = new Font("Arial", Font.PLAIN, 14); // Font we are using to print text
 

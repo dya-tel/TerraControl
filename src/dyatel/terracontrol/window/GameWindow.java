@@ -37,23 +37,41 @@ public abstract class GameWindow extends Canvas implements Runnable {
     protected static final int statusBarHeight = 47; // Vertical size of bottom panel
     protected static final Font font = new Font("Arial", Font.PLAIN, 14); // Font we are using to print text
 
-    protected GameWindow(int width, int height, String title) {
+    protected GameWindow(int width, int height, String title, DataArray data, Debug debug) {
+        // Saving all data
         this.width = width;
         this.height = height;
+        this.title = title;
+        this.debug = debug;
+
+        // Creating input managers
+        keyboard = new Keyboard();
+        mouse = new Mouse();
+
+        // Initializing
+        try {
+            start(data);
+        } catch (Exception e) {
+            // Saying that we were not able to start
+            debug.println("Stopping server!");
+            ErrorLogger.add(e);
+
+            // Stopping all we are running
+            running = false;
+            if (connection != null) connection.stop();
+
+            return;
+        }
+
+        // Setting canvas size
         setSize(width, height);
-        requestFocus();
 
         // Creating window
-        this.title = title;
         frame = new JFrame("TerraControl" + title);
         frame.setResizable(false);
         frame.add(this);
         frame.pack();
         frame.setLocationRelativeTo(null);
-
-        // Creating input managers
-        keyboard = new Keyboard();
-        mouse = new Mouse();
 
         // Adding all kind of listeners
         frame.addWindowListener(new WindowAdapter() {
@@ -68,17 +86,20 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
         // Showing window
         frame.setVisible(true);
+
+        // Running main game loop
+        thread.start();
     }
 
-    protected abstract void start(DataArray data);
+    protected abstract void start(DataArray data) throws Exception;
 
     protected void stop() {
         debug.println("Stopping" + title + "...");
         running = false;
 
-        if (connection != null) connection.stop();
+        connection.stop();
         try {
-            if (thread != null) thread.join();
+            thread.join();
         } catch (InterruptedException e) {
             ErrorLogger.add(e);
         }

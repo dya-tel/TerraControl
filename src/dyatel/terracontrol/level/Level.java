@@ -17,7 +17,7 @@ public abstract class Level {
     protected boolean initialized = false;
 
     protected int xOff, yOff; // Level offset
-    protected int scrollRate = 5; // Pixels per update
+    protected int scrollRate = 10; // Pixels per update
 
     protected int cellSize;
     protected double zoom = 1;
@@ -36,9 +36,6 @@ public abstract class Level {
     protected ArrayList<Updatable> needUpdate;
 
     protected Cell[] cells;
-
-    protected int timer = 0;
-    protected int delay = 20;
 
     protected int[] colors;
 
@@ -77,17 +74,10 @@ public abstract class Level {
         }
 
         // Updating offset if needed
-        if (keys[10]) xOff -= scrollRate;
-        if (keys[11]) yOff -= scrollRate;
-        if (keys[12]) xOff += scrollRate;
-        if (keys[13]) yOff += scrollRate;
-
-        if (xOff < 0) xOff = 0;
-        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
-            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
-        if (yOff < 0) yOff = 0;
-        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
-            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
+        if (keys[10]) changeXOff(-scrollRate);
+        if (keys[11]) changeYOff(-scrollRate);
+        if (keys[12]) changeXOff(scrollRate);
+        if (keys[13]) changeYOff(scrollRate);
 
         if (!initialized) return;
 
@@ -168,16 +158,33 @@ public abstract class Level {
         return -1;
     }
 
+    public void changeXOff(int dx) {
+        // Changing offset without going out of bounds
+        xOff += dx;
+        if (xOff < 0) xOff = 0;
+        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
+            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
+    }
+
+    public void changeYOff(int dy) {
+        // Changing offset without going out of bounds
+        yOff += dy;
+        if (yOff < 0) yOff = 0;
+        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
+            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
+    }
+
     public void changeZoom(int n) {
-        //TODO: fix this already
-        if (cellSize * (zoom + n * 0.1d) < 1) return; // Returning if zoomed too much
+        if (cellSize * (zoom + n * 0.5d) < 1) return; // Ignoring if zoomed too much
 
-        zoom += n * 0.1d;
+        double pZoom = zoom; // Previous zoom
+        zoom += n * 0.5d;
 
-        // Scaling offset
-        double scale = zoom / (zoom - n * 0.1d);
-        xOff *= scale;
-        yOff *= scale;
+        int diff = (int) ((cellSize * zoom) - (cellSize * pZoom)); // Cell size change
+        int cellsX = (int) ((xOff + window.getWidth() / 2) / ((cellSize * pZoom) + 1));
+        int cellsY = (int) ((yOff + window.getFieldHeight() / 2) / ((cellSize * pZoom) + 1));
+        changeXOff(cellsX * diff); // Centring x offset
+        changeYOff(cellsY * diff); // Centring y offset
     }
 
     public Debug getDebug() {

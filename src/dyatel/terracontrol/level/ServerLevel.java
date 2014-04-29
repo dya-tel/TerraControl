@@ -17,6 +17,9 @@ public class ServerLevel extends Level {
 
     private long genStart;
 
+    private int timer = 0;
+    private int delay = 5; // Skipped updates per generation (slow generator only)
+
     public ServerLevel(DataArray data, GameWindow window) {
         super(data.getInteger("cellSize"), window);
 

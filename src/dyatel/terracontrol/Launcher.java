@@ -48,8 +48,8 @@ public class Launcher extends JFrame {
 
         final JTextField colorsField = new JTextField("ff0000 00ff00 0000ff");
 
-        final JButton client = new JButton("Client");
         final JButton single = new JButton("Single player");
+        final JButton client = new JButton("Client");
         final JButton server = new JButton("Server");
 
         add(new JLabel("Window size"));
@@ -78,38 +78,12 @@ public class Launcher extends JFrame {
         add(new JLabel());
         add(colorsField);
 
-        add(client);
         add(single);
+        add(client);
         add(server);
         pack();
 
         setLocationRelativeTo(null);
-
-        client.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int width = Integer.parseInt(widthField.getText());
-                    int height = Integer.parseInt(heightField.getText());
-                    if (width <= 0 || height <= 0) throw new NumberFormatException();
-
-                    // Checking if address can be parsed
-                    InetAddress.getByName(addressField.getText());
-
-                    // Putting data into data wrapper
-                    DataArray data = new DataArray();
-                    data.fillString("address", addressField.getText());
-                    data.fillInteger("port", portField.getText());
-                    data.fillInteger("cellSize", cellSizeField.getText());
-                    data.fillBoolean("isAI", false);
-                    data.fillBoolean("noGUI", false);
-
-                    new Client(width, height, data, null);
-                } catch (Exception ex) {
-                    debug.println("Error: wrong input!");
-                }
-            }
-
-        });
 
         single.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -118,14 +92,6 @@ public class Launcher extends JFrame {
                     int height = Integer.parseInt(heightField.getText());
                     if (width <= 0 || height <= 0) throw new NumberFormatException();
 
-                    // Parsing client data
-                    DataArray clientData = new DataArray();
-                    clientData.fillString("address", "localhost");
-                    clientData.fillInteger("port", portField.getText());
-                    clientData.fillInteger("cellSize", cellSizeField.getText());
-                    clientData.fillBoolean("isAI", false);
-                    clientData.fillBoolean("noGUI", false);
-
                     // Parsing AI client data
                     DataArray AIData = new DataArray();
                     AIData.fillString("address", "localhost");
@@ -133,6 +99,14 @@ public class Launcher extends JFrame {
                     AIData.fillInteger("cellSize", cellSizeField.getText());
                     AIData.fillBoolean("isAI", true);
                     AIData.fillBoolean("noGUI", true);
+
+                    // Parsing client data
+                    DataArray clientData = new DataArray();
+                    clientData.fillString("address", "localhost");
+                    clientData.fillInteger("port", portField.getText());
+                    clientData.fillInteger("cellSize", cellSizeField.getText());
+                    clientData.fillBoolean("isAI", false);
+                    clientData.fillBoolean("noGUI", false);
 
                     // Parsing server data
                     DataArray serverData = new DataArray();
@@ -158,6 +132,32 @@ public class Launcher extends JFrame {
                     debug.println("Error: wrong input!");
                 }
             }
+        });
+
+        client.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int width = Integer.parseInt(widthField.getText());
+                    int height = Integer.parseInt(heightField.getText());
+                    if (width <= 0 || height <= 0) throw new NumberFormatException();
+
+                    // Checking if address can be parsed
+                    InetAddress.getByName(addressField.getText());
+
+                    // Putting data into data wrapper
+                    DataArray data = new DataArray();
+                    data.fillString("address", addressField.getText());
+                    data.fillInteger("port", portField.getText());
+                    data.fillInteger("cellSize", cellSizeField.getText());
+                    data.fillBoolean("isAI", false);
+                    data.fillBoolean("noGUI", false);
+
+                    new Client(width, height, data, null);
+                } catch (Exception ex) {
+                    debug.println("Error: wrong input!");
+                }
+            }
+
         });
 
         server.addActionListener(new ActionListener() {

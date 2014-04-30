@@ -41,6 +41,10 @@ public class Launcher extends JFrame {
         fastGenerationCheck.setHorizontalAlignment(JCheckBox.CENTER);
         fastGenerationCheck.setSelected(true);
 
+        final JCheckBox endAt50Check = new JCheckBox();
+        endAt50Check.setHorizontalAlignment(JCheckBox.CENTER);
+        endAt50Check.setSelected(true);
+
         final JTextField colorsField = new JTextField("ff0000 00ff00 0000ff");
 
         final JButton client = new JButton("Client");
@@ -63,6 +67,10 @@ public class Launcher extends JFrame {
         add(new JLabel("Fast generation"));
         add(new JLabel());
         add(fastGenerationCheck);
+
+        add(new JLabel("End if captured 50%"));
+        add(new JLabel());
+        add(endAt50Check);
 
         add(new JLabel("Colors"));
         add(new JLabel());
@@ -112,6 +120,7 @@ public class Launcher extends JFrame {
                     data.fillInteger("levelHeight", levelHeightField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
                     data.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
+                    data.fillBoolean("endAt50", endAt50Check.isSelected());
                     data.fillBoolean("noGUI", false);
 
                     String[] colorsR = colorsField.getText().split(" ");

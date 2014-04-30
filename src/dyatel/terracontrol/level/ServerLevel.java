@@ -12,13 +12,15 @@ public class ServerLevel extends Level {
 
     private Random random = Util.getRandom();
 
+    private boolean endAt50;
+
     private boolean generated = false;
     private boolean captured = false;
 
-    private long genStart;
+    private long genStart; // Level generation start time
 
-    private int timer = 0;
-    private int delay = 5; // Skipped updates per generation (slow generator only)
+    private int timer = 0; // Update counter
+    private int delay = 2; // Skipped updates per generation (slow generator only)
 
     public ServerLevel(DataArray data, GameWindow window) {
         super(data.getInteger("cellSize"), window);
@@ -49,6 +51,8 @@ public class ServerLevel extends Level {
             debug.println("Using standard generation...");
             addMasters(width * height * 4 / 5, width * height * 5 / 5); // Standard generation
         }
+
+        endAt50 = data.getBoolean("endAt50");
 
         initialized = true;
     }
@@ -120,14 +124,23 @@ public class ServerLevel extends Level {
         }
 
         // Checking if level is captured
+        boolean captured50 = false;
+        int cCells = 0; // Captured cells
         for (Cell cell : cells) {
-            if (cell == null || cell.getMaster().getOwner() == null) {
-                return;
-            }
+            if (cell != null) {
+                if (cell.getMaster().getOwner() != null) {
+                    if (endAt50 && cell.getMaster().getCells().size() > width * height / 2) {
+                        captured50 = true;
+                        break;
+                    } else cCells++;
+                }
+            } else return;
         }
-        debug.println("Captured level!");
-        ((ServerConnection) window.getConnection()).gameOver();
-        captured = true;
+        if ((endAt50 && captured50) || cCells == width * height) {
+            debug.println("Captured level!");
+            ((ServerConnection) window.getConnection()).gameOver();
+            captured = true;
+        }
     }
 
     public boolean isGenerated() {

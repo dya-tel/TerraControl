@@ -4,6 +4,7 @@ import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.window.Client;
+import dyatel.terracontrol.window.GameWindow;
 import dyatel.terracontrol.window.Server;
 
 import javax.swing.*;
@@ -48,6 +49,7 @@ public class Launcher extends JFrame {
         final JTextField colorsField = new JTextField("ff0000 00ff00 0000ff");
 
         final JButton client = new JButton("Client");
+        final JButton single = new JButton("Single player");
         final JButton server = new JButton("Server");
 
         add(new JLabel("Window size"));
@@ -77,7 +79,7 @@ public class Launcher extends JFrame {
         add(colorsField);
 
         add(client);
-        add(new JLabel());
+        add(single);
         add(server);
         pack();
 
@@ -88,6 +90,7 @@ public class Launcher extends JFrame {
                 try {
                     int width = Integer.parseInt(widthField.getText());
                     int height = Integer.parseInt(heightField.getText());
+                    if (width <= 0 || height <= 0) throw new NumberFormatException();
 
                     // Checking if address can be parsed
                     InetAddress.getByName(addressField.getText());
@@ -97,9 +100,10 @@ public class Launcher extends JFrame {
                     data.fillString("address", addressField.getText());
                     data.fillInteger("port", portField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
+                    data.fillBoolean("isAI", false);
                     data.fillBoolean("noGUI", false);
 
-                    new Client(width, height, data);
+                    new Client(width, height, data, null);
                 } catch (Exception ex) {
                     debug.println("Error: wrong input!");
                 }
@@ -107,11 +111,61 @@ public class Launcher extends JFrame {
 
         });
 
+        single.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    int width = Integer.parseInt(widthField.getText());
+                    int height = Integer.parseInt(heightField.getText());
+                    if (width <= 0 || height <= 0) throw new NumberFormatException();
+
+                    // Parsing client data
+                    DataArray clientData = new DataArray();
+                    clientData.fillString("address", "localhost");
+                    clientData.fillInteger("port", portField.getText());
+                    clientData.fillInteger("cellSize", cellSizeField.getText());
+                    clientData.fillBoolean("isAI", false);
+                    clientData.fillBoolean("noGUI", false);
+
+                    // Parsing AI client data
+                    DataArray AIData = new DataArray();
+                    AIData.fillString("address", "localhost");
+                    AIData.fillInteger("port", portField.getText());
+                    AIData.fillInteger("cellSize", cellSizeField.getText());
+                    AIData.fillBoolean("isAI", true);
+                    AIData.fillBoolean("noGUI", true);
+
+                    // Parsing server data
+                    DataArray serverData = new DataArray();
+                    serverData.fillInteger("port", portField.getText());
+                    serverData.fillInteger("levelWidth", levelWidthField.getText());
+                    serverData.fillInteger("levelHeight", levelHeightField.getText());
+                    serverData.fillInteger("cellSize", cellSizeField.getText());
+                    serverData.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
+                    serverData.fillBoolean("endAt50", endAt50Check.isSelected());
+                    serverData.fillBoolean("noGUI", true);
+
+                    String[] colorsR = colorsField.getText().split(" ");
+                    serverData.fillInteger("colors", colorsR.length);
+                    for (int i = 0; i < colorsR.length; i++) {
+                        serverData.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
+                    }
+
+                    // Creating AI client, player client and server and binding them
+                    GameWindow AIWindow = new Client(width, height, AIData, null);
+                    GameWindow serverWindow = new Server(width, height, serverData, AIWindow);
+                    new Client(width, height, clientData, serverWindow);
+                } catch (Exception ex) {
+                    debug.println("Error: wrong input!");
+                }
+            }
+        });
+
         server.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     int width = Integer.parseInt(widthField.getText());
                     int height = Integer.parseInt(heightField.getText());
+                    if (width <= 0 || height <= 0) throw new NumberFormatException();
 
                     // Putting data into data wrapper
                     DataArray data = new DataArray();
@@ -129,10 +183,9 @@ public class Launcher extends JFrame {
                         data.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
                     }
 
-                    new Server(width, height, data);
-                } catch (NumberFormatException ex) {
+                    new Server(width, height, data, null);
+                } catch (Exception ex) {
                     debug.println("Error: wrong input!");
-                    ex.printStackTrace();
                 }
             }
         });

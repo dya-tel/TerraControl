@@ -12,8 +12,8 @@ import java.awt.image.BufferedImage;
 
 public class Server extends GameWindow {
 
-    public Server(int width, int height, DataArray data) {
-        super(width, height, " server", data, Debug.serverDebug);
+    public Server(int width, int height, DataArray data, GameWindow bind) {
+        super(width, height, " server", data, Debug.serverDebug, bind);
     }
 
     protected void start(DataArray data) throws Exception {

@@ -10,16 +10,16 @@ import java.util.ArrayList;
 
 public class ClientLevel extends Level {
 
-    private Player owner;
-    private Player enemy;
+    protected Player owner;
+    protected Player enemy;
 
-    private int state = -1; // -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
+    protected int state = -1; // -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
-    private Cell currentCell; // Cell player is pointing on
-    private int currentColorID;
+    protected Cell currentCell; // Cell player is pointing on
+    protected int currentColorID;
     public int currentColor;
 
-    private boolean needToMakeATurn = false;
+    protected boolean needToMakeATurn = false;
 
     public ClientLevel(int cellSize, GameWindow window) {
         super(cellSize, window);

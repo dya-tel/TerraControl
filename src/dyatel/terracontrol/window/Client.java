@@ -1,6 +1,7 @@
 package dyatel.terracontrol.window;
 
 import dyatel.terracontrol.Screen;
+import dyatel.terracontrol.level.AILevel;
 import dyatel.terracontrol.level.ClientLevel;
 import dyatel.terracontrol.network.ClientConnection;
 import dyatel.terracontrol.util.DataArray;
@@ -12,8 +13,8 @@ import java.awt.image.BufferedImage;
 
 public class Client extends GameWindow {
 
-    public Client(int width, int height, DataArray data) {
-        super(width, height, " client", data, Debug.clientDebug);
+    public Client(int width, int height, DataArray data, GameWindow bind) {
+        super(width, height, " client", data, Debug.clientDebug, bind);
     }
 
     protected void start(DataArray data) throws Exception {
@@ -21,7 +22,7 @@ public class Client extends GameWindow {
 
         // Initialization goes here
         screen = new Screen(width, height);
-        level = new ClientLevel(data.getInteger("cellSize"), this);
+        level = data.getBoolean("isAI") ? new AILevel(data.getInteger("cellSize"), this) : new ClientLevel(data.getInteger("cellSize"), this);
         connection = new ClientConnection(data.getString("address"), data.getInteger("port"), this);
 
         // Creating main loop

@@ -22,6 +22,8 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
     protected Debug debug; // Output
 
+    protected GameWindow bind; // GameWindow to close on exit
+
     protected JFrame frame; // Actual window
     protected int width, height; // Sizes of window
     protected final String title; // What will be placed in title after "TerraControl", space is needed
@@ -38,12 +40,13 @@ public abstract class GameWindow extends Canvas implements Runnable {
     protected static final int statusBarHeight = 47; // Vertical size of bottom panel
     protected static final Font font = new Font("Arial", Font.PLAIN, 14); // Font we are using to print text
 
-    protected GameWindow(int width, int height, String title, DataArray data, Debug debug) {
+    protected GameWindow(int width, int height, String title, DataArray data, Debug debug, GameWindow bind) {
         // Saving all data
         this.width = width;
         this.height = height;
         this.title = title;
         this.debug = debug;
+        this.bind = bind;
         noGUI = data.getBoolean("noGUI");
 
         // Creating input managers
@@ -61,6 +64,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
             // Stopping all we are running
             running = false;
             if (connection != null) connection.stop();
+            if (bind != null) bind.stop();
 
             return;
         }
@@ -79,7 +83,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
             // Adding all kind of listeners
             frame.addWindowListener(new WindowAdapter() {
                 public void windowClosing(WindowEvent e) {
-                    stop();
+                    exit();
                 }
             });
             addKeyListener(keyboard);
@@ -107,6 +111,13 @@ public abstract class GameWindow extends Canvas implements Runnable {
         } catch (InterruptedException e) {
             ErrorLogger.add(e);
         }
+
+        if (!noGUI) frame.setVisible(false);
+    }
+
+    public final void exit() {
+        if (bind != null) bind.stop();
+        stop();
     }
 
     public final void run() {

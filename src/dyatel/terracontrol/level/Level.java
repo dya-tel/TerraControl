@@ -3,6 +3,7 @@ package dyatel.terracontrol.level;
 import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.input.Keyboard;
 import dyatel.terracontrol.input.Mouse;
+import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.window.GameWindow;
@@ -156,6 +157,19 @@ public abstract class Level {
             if (colors[i] == color) return i;
         }
         return -1;
+    }
+
+    public int willCapture(Player player, int colorID) {
+        int availableCells = 0;
+        if (colorID != -1) {
+            ArrayList<CellMaster> neighbors = player.getMaster().getNeighbors();
+            for (CellMaster master : neighbors) {
+                if (master.getColorID() == colorID && master.getOwner() == null) {
+                    availableCells += master.getCells().size();
+                }
+            }
+        }
+        return availableCells;
     }
 
     public void changeXOff(int dx) {

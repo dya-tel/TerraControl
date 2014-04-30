@@ -85,15 +85,7 @@ public class ClientLevel extends Level {
         }
 
         // Calculating number of cells that we can capture
-        int availableCells = 0;
-        if (currentColor != 0) {
-            ArrayList<CellMaster> neighbors = owner.getMaster().getNeighbors();
-            for (CellMaster master : neighbors) {
-                if (master.getColorID() == currentColorID && master != enemy.getMaster()) {
-                    availableCells += master.getCells().size();
-                }
-            }
-        }
+        int availableCells = willCapture(owner, currentColorID);
         window.statusBar[4] = String.valueOf(owner.getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
 
         // Making a turn if needed

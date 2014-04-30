@@ -1,7 +1,6 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.util.Util;
 import dyatel.terracontrol.window.GameWindow;
 
 public class AILevel extends ClientLevel {
@@ -13,7 +12,18 @@ public class AILevel extends ClientLevel {
     protected void sideUpdate() {
         // Making a turn if needed
         if (needToMakeATurn) {
-            int turn = Util.getRandom().nextInt(colors.length);
+            // Choosing best available
+            int max = -1;
+            int turn = -1;
+            for (int i = 0; i < colors.length; i++) {
+                int willAdd = willCapture(owner, i);
+                if (willAdd > max) {
+                    max = willAdd;
+                    turn = i;
+                }
+            }
+
+            // Making turn
             owner.addTurn(turn);
             needToMakeATurn = false;
         }

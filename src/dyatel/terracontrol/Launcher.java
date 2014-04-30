@@ -89,6 +89,7 @@ public class Launcher extends JFrame {
                     data.fillString("address", addressField.getText());
                     data.fillInteger("port", portField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
+                    data.fillBoolean("noGUI", false);
 
                     new Client(width, height, data);
                 } catch (Exception ex) {
@@ -111,6 +112,7 @@ public class Launcher extends JFrame {
                     data.fillInteger("levelHeight", levelHeightField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
                     data.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
+                    data.fillBoolean("noGUI", false);
 
                     String[] colorsR = colorsField.getText().split(" ");
                     data.fillInteger("colors", colorsR.length);

@@ -18,6 +18,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
     protected Thread thread; // Main game thread
     protected boolean running; // If false, the game will close
+    protected boolean noGUI; // If true, there will be no window
 
     protected Debug debug; // Output
 
@@ -43,6 +44,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
         this.height = height;
         this.title = title;
         this.debug = debug;
+        noGUI = data.getBoolean("noGUI");
 
         // Creating input managers
         keyboard = new Keyboard();
@@ -63,29 +65,31 @@ public abstract class GameWindow extends Canvas implements Runnable {
             return;
         }
 
-        // Setting canvas size
-        setSize(width, height);
+        if (!noGUI) {
+            // Setting canvas size
+            setSize(width, height);
 
-        // Creating window
-        frame = new JFrame("TerraControl" + title);
-        frame.setResizable(false);
-        frame.add(this);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
+            // Creating window
+            frame = new JFrame("TerraControl" + title);
+            frame.setResizable(false);
+            frame.add(this);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
 
-        // Adding all kind of listeners
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                stop();
-            }
-        });
-        addKeyListener(keyboard);
-        addMouseListener(mouse);
-        addMouseMotionListener(mouse);
-        addMouseWheelListener(mouse);
+            // Adding all kind of listeners
+            frame.addWindowListener(new WindowAdapter() {
+                public void windowClosing(WindowEvent e) {
+                    stop();
+                }
+            });
+            addKeyListener(keyboard);
+            addMouseListener(mouse);
+            addMouseMotionListener(mouse);
+            addMouseWheelListener(mouse);
 
-        // Showing window
-        frame.setVisible(true);
+            // Showing window
+            frame.setVisible(true);
+        }
 
         // Running main game loop
         thread.start();
@@ -116,21 +120,25 @@ public abstract class GameWindow extends Canvas implements Runnable {
             currentNanoTime = System.nanoTime();
             delta += (currentNanoTime - lastNanoTime) / 1000000000.0 * ups;
             lastNanoTime = currentNanoTime;
+
             try {
                 while (delta >= 1) {
                     update();
                     updates++;
                     delta--;
                 }
-                render();
-                frames++;
+
+                if (!noGUI) {
+                    render();
+                    frames++;
+                }
             } catch (Exception e) {
                 ErrorLogger.add(e);
             }
 
             if (System.currentTimeMillis() - timer >= 1000) {
                 timer = System.currentTimeMillis();
-                frame.setTitle("TerraControl" + title + ": " + updates + " ups, " + frames + " fps");
+                if (!noGUI) frame.setTitle("TerraControl" + title + ": " + updates + " ups, " + frames + " fps");
                 updates = 0;
                 frames = 0;
             }

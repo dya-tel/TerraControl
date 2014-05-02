@@ -141,25 +141,18 @@ public class ServerLevel extends Level {
             }
         }
 
-        if (captured) return;
+        if (!generated || captured) return;
 
         // Checking if level is captured
-        boolean captured50 = false;
         int cCells = 0; // Captured cells
-        for (Cell cell : cells) {
-            if (cell != null) {
-                if (cell.getMaster().getOwner() != null) {
-                    if (endAt50 && cell.getMaster().getCells().size() > width * height / 2) {
-                        captured50 = true;
-                        break;
-                    } else cCells++;
-                }
-            } else return;
-        }
-        if ((endAt50 && captured50) || cCells == width * height) {
-            debug.println("Captured level!");
-            ((ServerConnection) window.getConnection()).gameOver();
-            captured = true;
+        for (Player player : players) {
+            int cells = player.getMaster().getCells().size();
+            if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
+                debug.println("Captured level!");
+                ((ServerConnection) window.getConnection()).gameOver();
+                captured = true;
+                return;
+            }
         }
     }
 

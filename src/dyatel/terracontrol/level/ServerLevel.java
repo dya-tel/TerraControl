@@ -141,7 +141,7 @@ public class ServerLevel extends Level {
             }
         }
 
-        if (!generated || captured) return;
+        if (!generated || placingPlayers || captured) return;
 
         // Checking if level is captured
         int cCells = 0; // Captured cells

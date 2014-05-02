@@ -95,8 +95,9 @@ public class ServerLevel extends Level {
             if (delay > 1) delay--;
         }
 
-        // Checking and showing generation progress
+        // Level generation
         if (!generated) {
+            // Checking progress
             int gen = 0;
             for (int i = 0; i < width * height; i++) {
                 if (cells[i] != null) gen++;
@@ -118,6 +119,13 @@ public class ServerLevel extends Level {
 
                 generated = true;
             }
+
+            // Slow generation if needed
+            if (timer > 0) timer--;
+            if (timer == 0) {
+                for (CellMaster master : masters) master.generate();
+                timer = delay;
+            }
         }
 
         if (mouse.isClicked() && placingPlayers) {
@@ -133,14 +141,7 @@ public class ServerLevel extends Level {
             }
         }
 
-        if (generated && captured) return;
-
-        // Slow generation if needed
-        if (timer > 0) timer--;
-        if (!generated && timer == 0) {
-            for (CellMaster master : masters) master.generate();
-            timer = delay;
-        }
+        if (captured) return;
 
         // Checking if level is captured
         boolean captured50 = false;

@@ -10,8 +10,8 @@ import java.util.ArrayList;
 
 public class ClientLevel extends Level {
 
-    protected Player owner;
-    protected Player enemy;
+    protected Player[] players;
+    protected int playerID;
 
     protected int state = -1; // -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
@@ -30,21 +30,24 @@ public class ClientLevel extends Level {
         height = data.getInteger("levelHeight");
         cells = new Cell[width * height];
 
-        // Getting colors from data
-        colors = new int[data.getInteger("colors")];
-        for (int i = 0; i < colors.length; i++) {
-            colors[i] = data.getInteger("color" + i);
-        }
-
         // Creating masters
         masters = new ArrayList<CellMaster>();
         for (int i = 0; i < data.getInteger("masters"); i++) {
             new CellMaster(0xffffffff, this);
         }
 
-        // Placing owners
-        owner = new Player(this.masters.get(data.getInteger("masterID")), data.getInteger("ownerID"));
-        enemy = new Player(this.masters.get(data.getInteger("enemyMaster")), data.getInteger("enemyOwner"));
+        // Placing players
+        players = new Player[data.getInteger("players")];
+        playerID = data.getInteger("playerID");
+        for (int i = 0; i < players.length; i++) {
+            players[i] = new Player(masters.get(data.getInteger("player" + i)), i, window.getConnection());
+        }
+
+        // Getting colors from data
+        colors = new int[data.getInteger("colors")];
+        for (int i = 0; i < colors.length; i++) {
+            colors[i] = data.getInteger("color" + i);
+        }
 
         initialized = true;
     }
@@ -85,27 +88,30 @@ public class ClientLevel extends Level {
         }
 
         // Calculating number of cells that we can capture
-        int availableCells = willCapture(owner, currentColorID);
-        window.statusBar[4] = String.valueOf(owner.getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
+        int availableCells = willCapture(players[playerID], currentColorID);
+        window.statusBar[4] = String.valueOf(players[playerID].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
 
         // Making a turn if needed
         if (needToMakeATurn && state == 0 && mouse.isClicked() && availableCells > 0) {
-            owner.addTurn(getColorID(currentColor));
+            players[playerID].addTurn(getColorID(currentColor));
             needToMakeATurn = false;
         }
     }
 
     public void ready() {
-        // Updating all masters to find borders and etc
-        for (CellMaster master : masters) needUpdate(master);
+        for (CellMaster master : masters) needUpdate(master); // Updating all masters to find borders and etc
     }
 
-    public Player getOwner() {
-        return owner;
+    public Player getClientPlayer() {
+        return players[playerID];
     }
 
-    public Player getEnemy() {
-        return enemy;
+    public Player getPlayer(int id) {
+        return players[id];
+    }
+
+    public int getPlayers() {
+        return players.length;
     }
 
     public boolean isMyTurn() {
@@ -142,7 +148,7 @@ public class ClientLevel extends Level {
                 int color = Color.subtract(colors[master.getColorID()], 0xaa, 0xaa, 0xaa);
                 if (currentCell == null) {
                     color = colors[master.getColorID()];
-                } else if (master.getOwner() == owner || (master.getOwner() != enemy && owner.getMaster().isNeighbor(master) && master.getColorID() == currentColorID)) {
+                } else if (master.getOwner() == players[playerID] || (master.getOwner() == null && players[playerID].getMaster().isNeighbor(master) && master.getColorID() == currentColorID)) {
                     color = currentColor;
                 }
 

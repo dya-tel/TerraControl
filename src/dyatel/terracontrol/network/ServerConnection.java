@@ -14,7 +14,9 @@ public class ServerConnection extends Connection {
 
     private ServerLevel level;
 
-    private Player[] players = new Player[2];
+    private Player[] players;
+    private int connected = 0;
+    private int ready = 0;
 
     private Thread turnManager;
     private int currentPlayer;
@@ -29,9 +31,14 @@ public class ServerConnection extends Connection {
     }
 
     protected void process(final DatagramPacket packet) {
+        // Get message
         final String message = new String(packet.getData()).trim();
+
+        // Get sender
         final InetAddress address = packet.getAddress();
         final int port = packet.getPort();
+        int player = findPlayer(address, port);
+
         //debug.println(message);
 
         // Get data from message
@@ -39,26 +46,36 @@ public class ServerConnection extends Connection {
         final String[] dataR = message.substring(4).split("x");
 
         if (prefix.equals("/co/")) {
-            if (level.isGenerated()) {
+            if (level.isGenerated() && players != null) {
                 debug.println("Connection request from " + packet.getAddress() + ":" + packet.getPort() + "");
 
-                String data = "/da/" + level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size() + "x";
+                // If this player isn`t connected and we have place for players
+                if (player == -1 && connected < players.length) {
+                    player = connected;
+                    players[connected++].connect(address, port);
+                    window.statusBar[0] = "Waiting for players: " + connected + "/" + players.length;
 
-                if (!players[0].isConnected()) {
-                    players[0].connect(address, port);
-                    data += players[0].getMaster().getID() + "x" + players[0].getID() + "x" + players[1].getMaster().getID() + "x" + players[1].getID();
-                } else {
-                    players[1].connect(address, port);
-                    data += players[1].getMaster().getID() + "x" + players[1].getID() + "x" + players[0].getMaster().getID() + "x" + players[0].getID();
+                    if (connected == players.length) {
+                        window.statusBar[0] = "Players are receiving levels: 0/" + players.length;
+                    }
                 }
 
-                // Put colors into data
+                // Putting level data
+                String data = "/da/" + level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size();
+
+                // Putting players
+                data += "x" + players.length + "x" + player;
+                for (int i = 0; i < players.length; i++) {
+                    data += "x" + players[i].getMaster().getID();
+                }
+
+                // Putting colors into message
                 data += "x" + level.getColors().length;
                 for (int i = 0; i < level.getColors().length; i++) {
                     data += "x" + level.getColors()[i];
                 }
 
-                send(data, address, port);
+                players[player].send(data);
             }
         } else if (prefix.equals("/ma/")) {
             new Thread("MasterSender") {
@@ -116,78 +133,95 @@ public class ServerConnection extends Connection {
                 }
             }.start();
         } else if (prefix.equals("/rd/")) {
-            if (players[0].equals(address, port)) {
-                players[0].ready();
-            } else {
-                players[1].ready();
-            }
+            if (player != -1 && !players[player].isReady()) {
+                players[ready++].ready();
+                window.statusBar[0] = "Players are receiving levels: " + ready + "/" + players.length;
 
-            if (players[0].isReady() && players[1].isReady()) {
-                send("/st/0", players[0].getAddress(), players[0].getPort());
-                send("/st/0", players[1].getAddress(), players[1].getPort());
-                startTurnManager();
+                if (ready == players.length) {
+                    sendEveryoneExcluding("/st/0", -1);
+                    startTurnManager();
+                }
             }
         } else if (prefix.equals("/to/")) {
-            int turn = Integer.parseInt(dataR[0]);
-            int colorID = Integer.parseInt(dataR[1]);
+            if (player != -1) {
+                int turn = Integer.parseInt(dataR[0]);
+                int colorID = Integer.parseInt(dataR[1]);
 
-            if (players[0].equals(address, port)) {
-                if (players[0].getTurns() == turn - 1) {
-                    players[0].addTurn(colorID);
-                    currentPlayer = 1;
-                }
-            } else {
-                if (players[1].getTurns() == turn - 1) {
-                    players[1].addTurn(colorID);
-                    currentPlayer = 0;
+                if (players[player].getTurns() == turn - 1) {
+                    players[player].addTurn(colorID);
+                    currentPlayer = nextPlayer();
                 }
             }
-        } else if (prefix.equals("/te/")) {
-            if (players[0].equals(address, port)) {
-                if (players[1].getLastTurn() != -1)
-                    send("/te/" + players[1].getTurns() + "x" + players[1].getLastTurn(), players[0].getAddress(), players[0].getPort());
-            } else {
-                if (players[0].getLastTurn() != -1)
-                    send("/te/" + players[0].getTurns() + "x" + players[0].getLastTurn(), players[1].getAddress(), players[1].getPort());
-            }
-        }
+        } else debug.println("Unknown prefix " + prefix);
     }
 
     protected void waitForThreads() throws InterruptedException {
         if (turnManager != null) turnManager.join();
     }
 
-    public void createPlayers() {
-        players[0] = new Player(0, 0, 0, level);
-        players[1] = new Player(level.getWidth() - 1, level.getHeight() - 1, 1, level);
+    public void createPlayers(Player[] players) {
+        window.statusBar[0] = "Waiting for players: 0/" + players.length;
+        this.players = players;
+    }
+
+    private int findPlayer(InetAddress address, int port) {
+        if (players == null) return -1;
+        for (int i = 0; i < players.length; i++) if (players[i].equals(address, port)) return i;
+        return -1;
+    }
+
+    private void sendEveryoneExcluding(String message, int exclude) {
+        for (int i = 0; i < players.length; i++) if (i != exclude) players[i].send(message);
     }
 
     public void gameOver() {
-        int p1 = players[0].getMaster().getCells().size();
-        int p2 = players[1].getMaster().getCells().size();
-        if (p1 > p2) {
-            send("/st/1", players[0].getAddress(), players[0].getPort());
-            send("/st/2", players[1].getAddress(), players[1].getPort());
-        } else if (p1 < p2) {
-            send("/st/2", players[0].getAddress(), players[0].getPort());
-            send("/st/1", players[1].getAddress(), players[1].getPort());
-        } else {
-            send("/st/3", players[0].getAddress(), players[0].getPort());
-            send("/st/3", players[1].getAddress(), players[1].getPort());
+        // Find winner
+        int max = -1; // Max captured cells
+        int same = 0; // Needed to determine draw
+        for (int i = 0; i < players.length; i++) {
+            int cells = players[i].getMaster().getCells().size();
+            if (cells > max) {
+                max = cells;
+                same = 0;
+            } else if (cells == max) same++;
         }
+        // Send result to every player
+        for (Player player : players) {
+            int cells = player.getMaster().getCells().size();
+            if (cells < max) {
+                player.send("/st/2");
+            } else if (cells == max) {
+                if (same == 0)
+                    player.send("/st/1");
+                else
+                    player.send("/st/3");
+            }
+        }
+    }
 
-        state = 2;
+    private int nextPlayer() {
+        return currentPlayer == players.length - 1 ? 0 : currentPlayer + 1;
+    }
+
+    private int previousPlayer() {
+        return currentPlayer == 0 ? players.length - 1 : currentPlayer - 1;
     }
 
     private void startTurnManager() {
         state = 0;
         turnManager = new Thread() {
             public void run() {
-                currentPlayer = Util.getRandom().nextInt(players.length);
-
+                currentPlayer = Util.getRandom().nextInt(players.length); // First player
                 while (running && state == 0) {
-                    int otherPlayer = currentPlayer == 0 ? 1 : 0;
-                    send("/tu/" + (players[currentPlayer].getTurns() + 1) + "x" + players[otherPlayer].getTurns() + "x" + players[otherPlayer].getLastTurn(), players[currentPlayer].getAddress(), players[currentPlayer].getPort());
+                    String message = "/tu/" + (players[currentPlayer].getTurns() + 1); // Player turn ID
+
+                    // Adding enemies turns
+                    for (int i = 0; i < players.length; i++) {
+                        message += "x" + players[i].getTurns() + "x" + players[i].getLastTurn();
+                    }
+
+                    // Sending
+                    players[currentPlayer].send(message);
                     try {
                         sleep(100);
                     } catch (InterruptedException e) {

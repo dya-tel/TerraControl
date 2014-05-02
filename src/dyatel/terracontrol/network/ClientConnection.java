@@ -55,16 +55,20 @@ public class ClientConnection extends Connection {
                 data.fillInteger("levelWidth", dataR[0]);
                 data.fillInteger("levelHeight", dataR[1]);
                 data.fillInteger("masters", dataR[2]);
-                data.fillInteger("masterID", dataR[3]);
-                data.fillInteger("ownerID", dataR[4]);
-                data.fillInteger("enemyMaster", dataR[5]);
-                data.fillInteger("enemyOwner", dataR[6]);
+
+                // Placing all masters into array
+                int players = Integer.parseInt(dataR[3]);
+                data.fillInteger("players", players);
+                data.fillInteger("playerID", dataR[4]);
+                for (int i = 0; i < players; i++) {
+                    data.fillInteger("player" + i, dataR[5 + i]);
+                }
 
                 // Placing all colors into array
-                int n = Integer.parseInt(dataR[7]);
-                data.fillInteger("colors", n);
-                for (int i = 0; i < n; i++) {
-                    data.fillInteger("color" + i, dataR[8 + i]);
+                int colors = Integer.parseInt(dataR[5 + players]);
+                data.fillInteger("colors", colors);
+                for (int i = 0; i < colors; i++) {
+                    data.fillInteger("color" + i, dataR[6 + players + i]);
                 }
 
                 // Initializing level with all data
@@ -115,28 +119,23 @@ public class ClientConnection extends Connection {
             window.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
         } else if (prefix.equals("/tu/")) {
             int turn = Integer.parseInt(dataR[0]);
-            int enemyTurn = Integer.parseInt(dataR[1]);
-            int enemyColor = Integer.parseInt(dataR[2]);
-
-            // Getting enemy`s turn
-            if (enemyColor != -1 && enemyTurn == level.getEnemy().getTurns() + 1) level.getEnemy().addTurn(enemyColor);
-
             // Making out turn
-            if (turn == level.getOwner().getTurns()) {
-                send("/to/" + turn + "x" + level.getOwner().getLastTurn());
+            if (turn == level.getClientPlayer().getTurns()) {
+                send("/to/" + turn + "x" + level.getClientPlayer().getLastTurn());
             } else {
                 level.needTurn();
             }
-        } else if (prefix.equals("/te/")) {
-            // Receiving enemy`s move
-            int turn = Integer.parseInt(dataR[0]);
-            int colorID = Integer.parseInt(dataR[1]);
 
-            if (turn == level.getEnemy().getTurns() + 1) level.getEnemy().addTurn(colorID);
+            // Getting enemies turns
+            for (int i = 0; i < level.getPlayers(); i++) {
+                int turns = Integer.parseInt(dataR[1 + i * 2]);
+                int colorID = Integer.parseInt(dataR[2 + i * 2]);
+                if (colorID != -1 && turns == level.getPlayer(i).getTurns() + 1) level.getPlayer(i).addTurn(colorID);
+            }
         } else if (message.startsWith("/st/")) {
             int state = Integer.parseInt(message.substring(4));
             level.changeState(state);
-        }
+        } else debug.println("Unknown prefix " + prefix);
     }
 
     protected void waitForThreads() throws InterruptedException {

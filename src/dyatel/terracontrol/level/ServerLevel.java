@@ -1,6 +1,7 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
+import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.network.ServerConnection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Util;
@@ -12,9 +13,13 @@ public class ServerLevel extends Level {
 
     private Random random = Util.getRandom();
 
+    private Player[] players;
+    private int placedPlayers = 0;
+
     private boolean endAt50;
 
     private boolean generated = false;
+    private boolean placingPlayers = false;
     private boolean captured = false;
 
     private long genStart; // Level generation start time
@@ -52,6 +57,7 @@ public class ServerLevel extends Level {
             addMasters(width * height * 4 / 5, width * height * 5 / 5); // Standard generation
         }
 
+        players = new Player[data.getInteger("players")];
         endAt50 = data.getBoolean("endAt50");
 
         initialized = true;
@@ -99,7 +105,6 @@ public class ServerLevel extends Level {
                 window.statusBar[0] = "Generated: " + gen * 100 / (width * height) + "%";
             } else {
                 debug.println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
-                window.statusBar[0] = "";
 
                 int tempC = 0;
                 for (CellMaster master : masters) {
@@ -108,9 +113,23 @@ public class ServerLevel extends Level {
                 }
                 debug.println("Checking cells... " + ((tempC == width * height) ? "OK" : "Failed: " + tempC + "/" + width * height));
 
-                ((ServerConnection) window.getConnection()).createPlayers();
+                window.statusBar[0] = "Place players: 0/" + players.length;
+                placingPlayers = true;
 
                 generated = true;
+            }
+        }
+
+        if (mouse.isClicked() && placingPlayers) {
+            CellMaster currentMaster = getMaster(mouseLX, mouseLY);
+            if (currentMaster != null && currentMaster.getOwner() == null) {
+                players[placedPlayers++] = new Player(currentMaster, placedPlayers - 1, window.getConnection());
+                window.statusBar[0] = "Place players: " + placedPlayers + "/" + players.length;
+
+                if (placedPlayers == players.length) {
+                    ((ServerConnection) window.getConnection()).createPlayers(players);
+                    placingPlayers = false;
+                }
             }
         }
 

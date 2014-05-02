@@ -38,6 +38,8 @@ public class Launcher extends JFrame {
 
         final JTextField cellSizeField = new JTextField("8");
 
+        final JTextField playersField = new JTextField("2");
+
         final JCheckBox fastGenerationCheck = new JCheckBox();
         fastGenerationCheck.setHorizontalAlignment(JCheckBox.CENTER);
         fastGenerationCheck.setSelected(true);
@@ -65,6 +67,10 @@ public class Launcher extends JFrame {
         add(new JLabel("Cell size"));
         add(new JLabel());
         add(cellSizeField);
+
+        add(new JLabel("Players"));
+        add(new JLabel());
+        add(playersField);
 
         add(new JLabel("Fast generation"));
         add(new JLabel());
@@ -114,6 +120,7 @@ public class Launcher extends JFrame {
                     serverData.fillInteger("levelWidth", levelWidthField.getText());
                     serverData.fillInteger("levelHeight", levelHeightField.getText());
                     serverData.fillInteger("cellSize", cellSizeField.getText());
+                    serverData.fillInteger("players", playersField.getText());
                     serverData.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
                     serverData.fillBoolean("endAt50", endAt50Check.isSelected());
                     serverData.fillBoolean("noGUI", true);
@@ -173,6 +180,7 @@ public class Launcher extends JFrame {
                     data.fillInteger("levelWidth", levelWidthField.getText());
                     data.fillInteger("levelHeight", levelHeightField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
+                    data.fillInteger("players", playersField.getText());
                     data.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
                     data.fillBoolean("endAt50", endAt50Check.isSelected());
                     data.fillBoolean("noGUI", false);

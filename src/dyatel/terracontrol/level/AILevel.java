@@ -16,7 +16,7 @@ public class AILevel extends ClientLevel {
             int max = -1;
             int turn = -1;
             for (int i = 0; i < colors.length; i++) {
-                int willAdd = willCapture(owner, i);
+                int willAdd = willCapture(players[playerID], i);
                 if (willAdd > max) {
                     max = willAdd;
                     turn = i;
@@ -24,7 +24,7 @@ public class AILevel extends ClientLevel {
             }
 
             // Making turn
-            owner.addTurn(turn);
+            players[playerID].addTurn(turn);
             needToMakeATurn = false;
         }
     }

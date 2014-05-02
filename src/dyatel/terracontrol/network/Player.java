@@ -13,6 +13,7 @@ public class Player {
 
     private CellMaster master;
 
+    private Connection connection;
     private InetAddress address;
     private int port;
 
@@ -22,12 +23,13 @@ public class Player {
     private int turns = 0;
     private int lastTurn = -1;
 
-    public Player(int x, int y, int id, Level level) {
-        this(level.getCell(x, y).getMaster(), id);
+    public Player(int x, int y, int id, Level level, Connection connection) {
+        this(level.getCell(x, y).getMaster(), id, connection);
     }
 
-    public Player(CellMaster master, int id) {
+    public Player(CellMaster master, int id, Connection connection) {
         this.id = id;
+        this.connection = connection;
         level = master.getLevel();
 
         if (master.getOwner() == null) {
@@ -67,6 +69,10 @@ public class Player {
 
     public boolean isConnected() {
         return connected;
+    }
+
+    public void send(String message) {
+        connection.send(message, address, port);
     }
 
     public void ready() {

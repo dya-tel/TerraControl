@@ -12,6 +12,15 @@ import java.net.InetAddress;
 public abstract class Connection {
 
     public static final int BUFFER_SIZE = 1024;
+    public static final int MESSAGE_SIZE = BUFFER_SIZE - 1;
+
+    protected static final byte CODE_CONNECT = 0;
+    protected static final byte CODE_DATA = 1;
+    protected static final byte CODE_READY = 2;
+    protected static final byte CODE_STATE = 3;
+    protected static final byte CODE_MASTERS = 4;
+    protected static final byte CODE_CELLS = 5;
+    protected static final byte CODE_TURN = 6;
 
     protected GameWindow window;
     protected Debug debug;
@@ -76,8 +85,12 @@ public abstract class Connection {
 
     protected abstract void waitForThreads() throws InterruptedException;
 
-    protected void send(String message, InetAddress address, int port) {
-        DatagramPacket packet = new DatagramPacket(message.getBytes(), message.length(), address, port);
+    protected void send(byte code, String message, InetAddress address, int port) {
+        byte[] bytes = new byte[message.length() + 1];
+        bytes[0] = code;
+        System.arraycopy(message.getBytes(), 0, bytes, 1, message.length());
+
+        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, port);
         try {
             socket.send(packet);
             transmitted += packet.getLength();

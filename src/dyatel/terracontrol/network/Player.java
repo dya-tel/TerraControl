@@ -71,8 +71,8 @@ public class Player {
         return connected;
     }
 
-    public void send(String message) {
-        connection.send(message, address, port);
+    public void send(byte code, String message) {
+        connection.send(code, message, address, port);
     }
 
     public void ready() {

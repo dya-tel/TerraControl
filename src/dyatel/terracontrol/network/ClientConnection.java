@@ -38,14 +38,16 @@ public class ClientConnection extends Connection {
     }
 
     protected void process(DatagramPacket packet) {
+        // Get message
+        final byte code = packet.getData()[0];
         final String message = new String(packet.getData()).trim();
-        //debug.println(message);
 
         // Get data from message
-        final String prefix = message.substring(0, 4);
-        final String[] dataR = message.substring(4).split("x");
+        final String[] dataR = message.split("x");
 
-        if (prefix.equals("/da/")) {
+        //debug.println(code + " " + message);
+
+        if (code == CODE_DATA) {
             if (!connected) {
                 debug.println("Connected!");
                 window.statusBar[0] = "";
@@ -79,7 +81,7 @@ public class ClientConnection extends Connection {
 
                 connected = true;
             }
-        } else if (prefix.equals("/ma/")) {
+        } else if (code == CODE_MASTERS) {
             ArrayList<CellMaster> masters = level.getMasters();
 
             int start = Integer.parseInt(dataR[0]);
@@ -98,7 +100,7 @@ public class ClientConnection extends Connection {
             }
 
             window.statusBar[0] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
-        } else if (prefix.equals("/ce/")) {
+        } else if (code == CODE_CELLS) {
             int start = Integer.parseInt(dataR[0]);
             int end = Integer.parseInt(dataR[1]);
 
@@ -117,11 +119,11 @@ public class ClientConnection extends Connection {
             }
 
             window.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
-        } else if (prefix.equals("/tu/")) {
+        } else if (code == CODE_TURN) {
             int turn = Integer.parseInt(dataR[0]);
             // Making out turn
             if (turn == level.getClientPlayer().getTurns()) {
-                send("/to/" + turn + "x" + level.getClientPlayer().getLastTurn());
+                send(CODE_TURN, turn + "x" + level.getClientPlayer().getLastTurn());
             } else {
                 level.needTurn();
             }
@@ -132,10 +134,10 @@ public class ClientConnection extends Connection {
                 int colorID = Integer.parseInt(dataR[2 + i * 2]);
                 if (colorID != -1 && turns == level.getPlayer(i).getTurns() + 1) level.getPlayer(i).addTurn(colorID);
             }
-        } else if (message.startsWith("/st/")) {
-            int state = Integer.parseInt(message.substring(4));
+        } else if (code == CODE_STATE) {
+            int state = Integer.parseInt(message);
             level.changeState(state);
-        } else debug.println("Unknown prefix " + prefix);
+        } else debug.println("Unknown code " + code);
     }
 
     protected void waitForThreads() throws InterruptedException {
@@ -148,7 +150,7 @@ public class ClientConnection extends Connection {
             public void run() {
                 while (!connected && running) {
                     try {
-                        send("/co/");
+                        send(CODE_CONNECT, "");
                         sleep(1000);
                     } catch (InterruptedException e) {
                         ErrorLogger.add(e);
@@ -170,13 +172,13 @@ public class ClientConnection extends Connection {
 
                 // Requesting masters
                 // Calculating the number of max possible masters per request
-                perRequest = ((Connection.BUFFER_SIZE - 4) - 2 * (String.valueOf(masters).length()) - 1) / (String.valueOf(level.getColors().length).length() + 1) - 1;
+                perRequest = (MESSAGE_SIZE - 2 * (String.valueOf(masters).length()) - 1) / (String.valueOf(level.getColors().length).length() + 1) - 1;
                 while (receivedMasters < masters && running) {
                     try {
                         if (receivedCells + perRequest < masters)
-                            send("/ma/" + receivedMasters + "x" + (receivedMasters + perRequest));
+                            send(CODE_MASTERS, receivedMasters + "x" + (receivedMasters + perRequest));
                         else
-                            send("/ma/" + receivedMasters + "x" + masters);
+                            send(CODE_MASTERS, receivedMasters + "x" + masters);
 
                         sleep(100);
                     } catch (InterruptedException e) {
@@ -186,13 +188,13 @@ public class ClientConnection extends Connection {
 
                 // Requesting cells
                 // Calculating the number of max possible cells per request
-                perRequest = ((Connection.BUFFER_SIZE - 4) - 2 * (String.valueOf(width * height).length()) - 1) / (String.valueOf(masters).length() + 1) - 1;
+                perRequest = (MESSAGE_SIZE - 2 * (String.valueOf(width * height).length()) - 1) / (String.valueOf(masters).length() + 1) - 1;
                 while (receivedCells < width * height && running) {
                     try {
                         if (receivedCells + perRequest < width * height)
-                            send("/ce/" + receivedCells + "x" + (receivedCells + perRequest));
+                            send(CODE_CELLS, receivedCells + "x" + (receivedCells + perRequest));
                         else
-                            send("/ce/" + receivedCells + "x" + width * height);
+                            send(CODE_CELLS, receivedCells + "x" + width * height);
 
                         sleep(100);
                     } catch (InterruptedException e) {
@@ -202,14 +204,14 @@ public class ClientConnection extends Connection {
 
                 window.statusBar[0] = "";
                 level.ready();
-                send("/rd/");
+                send(CODE_READY, "");
             }
         };
         levelReceiver.start();
     }
 
-    public void send(String message) {
-        send(message, address, port);
+    public void send(byte code, String message) {
+        send(code, message, address, port);
     }
 
 }

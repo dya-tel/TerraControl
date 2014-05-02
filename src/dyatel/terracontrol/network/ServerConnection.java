@@ -32,6 +32,7 @@ public class ServerConnection extends Connection {
 
     protected void process(final DatagramPacket packet) {
         // Get message
+        final byte code = packet.getData()[0];
         final String message = new String(packet.getData()).trim();
 
         // Get sender
@@ -39,13 +40,12 @@ public class ServerConnection extends Connection {
         final int port = packet.getPort();
         int player = findPlayer(address, port);
 
-        //debug.println(message);
-
         // Get data from message
-        final String prefix = message.substring(0, 4);
-        final String[] dataR = message.substring(4).split("x");
+        final String[] dataR = message.split("x");
 
-        if (prefix.equals("/co/")) {
+        //debug.println(code + " " + message);
+
+        if (code == CODE_CONNECT) {
             if (level.isGenerated() && players != null) {
                 debug.println("Connection request from " + packet.getAddress() + ":" + packet.getPort() + "");
 
@@ -61,23 +61,21 @@ public class ServerConnection extends Connection {
                 }
 
                 // Putting level data
-                String data = "/da/" + level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size();
-
+                String data = level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size();
                 // Putting players
                 data += "x" + players.length + "x" + player;
                 for (int i = 0; i < players.length; i++) {
                     data += "x" + players[i].getMaster().getID();
                 }
-
                 // Putting colors into message
                 data += "x" + level.getColors().length;
                 for (int i = 0; i < level.getColors().length; i++) {
                     data += "x" + level.getColors()[i];
                 }
 
-                players[player].send(data);
+                players[player].send(CODE_DATA, data);
             }
-        } else if (prefix.equals("/ma/")) {
+        } else if (code == CODE_MASTERS) {
             new Thread("MasterSender") {
                 public void run() {
                     int start = Integer.parseInt(dataR[0]);
@@ -93,18 +91,18 @@ public class ServerConnection extends Connection {
 
                     for (int i = start; i <= end; i++) {
                         int color = masters.get(i).getColorID();
-                        temp = "/ma/" + messageStart + "x";
-                        if ((temp + i + data + "x" + color).length() > Connection.BUFFER_SIZE) {
-                            send(temp + (i - 1) + data, address, port);
+                        temp = messageStart + "x";
+                        if ((temp + i + data + "x" + color).length() > MESSAGE_SIZE) {
+                            send(CODE_MASTERS, temp + (i - 1) + data, address, port);
                             messageStart = i;
                             data = "";
                         }
                         data += "x" + color;
                     }
-                    send("/ma/" + messageStart + "x" + end + data, address, port);
+                    send(CODE_MASTERS, messageStart + "x" + end + data, address, port);
                 }
             }.start();
-        } else if (prefix.equals("/ce/")) {
+        } else if (code == CODE_CELLS) {
             new Thread("LevelSender") {
                 public void run() {
                     int start = Integer.parseInt(dataR[0]);
@@ -121,28 +119,28 @@ public class ServerConnection extends Connection {
 
                     for (int i = start; i <= end; i++) {
                         int id = level.getMaster(i % width, i / width).getID();
-                        temp = "/ce/" + messageStart + "x";
-                        if ((temp + i + data + "x" + id).length() > Connection.BUFFER_SIZE) {
-                            send(temp + (i - 1) + data, address, port);
+                        temp = messageStart + "x";
+                        if ((temp + i + data + "x" + id).length() > MESSAGE_SIZE) {
+                            send(CODE_CELLS, temp + (i - 1) + data, address, port);
                             messageStart = i;
                             data = "";
                         }
                         data += "x" + id;
                     }
-                    send("/ce/" + messageStart + "x" + end + data, address, port);
+                    send(CODE_CELLS, messageStart + "x" + end + data, address, port);
                 }
             }.start();
-        } else if (prefix.equals("/rd/")) {
+        } else if (code == CODE_READY) {
             if (player != -1 && !players[player].isReady()) {
                 players[ready++].ready();
                 window.statusBar[0] = "Players are receiving levels: " + ready + "/" + players.length;
 
                 if (ready == players.length) {
-                    sendEveryoneExcluding("/st/0", -1);
+                    sendEveryoneExcluding(CODE_STATE, "0", -1);
                     startTurnManager();
                 }
             }
-        } else if (prefix.equals("/to/")) {
+        } else if (code == CODE_TURN) {
             if (player != -1) {
                 int turn = Integer.parseInt(dataR[0]);
                 int colorID = Integer.parseInt(dataR[1]);
@@ -152,7 +150,7 @@ public class ServerConnection extends Connection {
                     currentPlayer = nextPlayer();
                 }
             }
-        } else debug.println("Unknown prefix " + prefix);
+        } else debug.println("Unknown code " + code);
     }
 
     protected void waitForThreads() throws InterruptedException {
@@ -170,8 +168,8 @@ public class ServerConnection extends Connection {
         return -1;
     }
 
-    private void sendEveryoneExcluding(String message, int exclude) {
-        for (int i = 0; i < players.length; i++) if (i != exclude) players[i].send(message);
+    private void sendEveryoneExcluding(byte code, String message, int exclude) {
+        for (int i = 0; i < players.length; i++) if (i != exclude) players[i].send(code, message);
     }
 
     public void gameOver() {
@@ -189,12 +187,12 @@ public class ServerConnection extends Connection {
         for (Player player : players) {
             int cells = player.getMaster().getCells().size();
             if (cells < max) {
-                player.send("/st/2");
+                player.send(CODE_STATE, "2");
             } else if (cells == max) {
                 if (same == 0)
-                    player.send("/st/1");
+                    player.send(CODE_STATE, "1");
                 else
-                    player.send("/st/3");
+                    player.send(CODE_STATE, "3");
             }
         }
     }
@@ -213,7 +211,7 @@ public class ServerConnection extends Connection {
             public void run() {
                 currentPlayer = Util.getRandom().nextInt(players.length); // First player
                 while (running && state == 0) {
-                    String message = "/tu/" + (players[currentPlayer].getTurns() + 1); // Player turn ID
+                    String message = String.valueOf(players[currentPlayer].getTurns() + 1); // Player turn ID
 
                     // Adding enemies turns
                     for (int i = 0; i < players.length; i++) {
@@ -221,7 +219,7 @@ public class ServerConnection extends Connection {
                     }
 
                     // Sending
-                    players[currentPlayer].send(message);
+                    players[currentPlayer].send(CODE_TURN, message);
                     try {
                         sleep(100);
                     } catch (InterruptedException e) {

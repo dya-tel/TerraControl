@@ -4,8 +4,8 @@ import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.window.Client;
-import dyatel.terracontrol.window.GameWindow;
 import dyatel.terracontrol.window.Server;
+import dyatel.terracontrol.window.SinglePlayer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -98,43 +98,24 @@ public class Launcher extends JFrame {
                     int height = Integer.parseInt(heightField.getText());
                     if (width <= 0 || height <= 0) throw new NumberFormatException();
 
-                    // Parsing AI client data
-                    DataArray AIData = new DataArray();
-                    AIData.fillString("address", "localhost");
-                    AIData.fillInteger("port", portField.getText());
-                    AIData.fillInteger("cellSize", cellSizeField.getText());
-                    AIData.fillBoolean("isAI", true);
-                    AIData.fillBoolean("noGUI", true);
+                    // Parsing data
+                    DataArray data = new DataArray();
+                    data.fillInteger("levelWidth", levelWidthField.getText());
+                    data.fillInteger("levelHeight", levelHeightField.getText());
+                    data.fillInteger("cellSize", cellSizeField.getText());
+                    data.fillInteger("players", playersField.getText());
+                    data.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
+                    data.fillBoolean("endAt50", endAt50Check.isSelected());
+                    data.fillBoolean("noGUI", false);
 
-                    // Parsing client data
-                    DataArray clientData = new DataArray();
-                    clientData.fillString("address", "localhost");
-                    clientData.fillInteger("port", portField.getText());
-                    clientData.fillInteger("cellSize", cellSizeField.getText());
-                    clientData.fillBoolean("isAI", false);
-                    clientData.fillBoolean("noGUI", false);
-
-                    // Parsing server data
-                    DataArray serverData = new DataArray();
-                    serverData.fillInteger("port", portField.getText());
-                    serverData.fillInteger("levelWidth", levelWidthField.getText());
-                    serverData.fillInteger("levelHeight", levelHeightField.getText());
-                    serverData.fillInteger("cellSize", cellSizeField.getText());
-                    serverData.fillInteger("players", playersField.getText());
-                    serverData.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
-                    serverData.fillBoolean("endAt50", endAt50Check.isSelected());
-                    serverData.fillBoolean("noGUI", true);
-
+                    // Parsing colors
                     String[] colorsR = colorsField.getText().split(" ");
-                    serverData.fillInteger("colors", colorsR.length);
+                    data.fillInteger("colors", colorsR.length);
                     for (int i = 0; i < colorsR.length; i++) {
-                        serverData.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
+                        data.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
                     }
 
-                    // Creating AI client, player client and server and binding them
-                    GameWindow AIWindow = new Client(width, height, AIData, null);
-                    GameWindow serverWindow = new Server(width, height, serverData, AIWindow);
-                    new Client(width, height, clientData, serverWindow);
+                    new SinglePlayer(width, height, data, null);
                 } catch (Exception ex) {
                     debug.println("Error: wrong input!");
                 }
@@ -156,7 +137,6 @@ public class Launcher extends JFrame {
                     data.fillString("address", addressField.getText());
                     data.fillInteger("port", portField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
-                    data.fillBoolean("isAI", false);
                     data.fillBoolean("noGUI", false);
 
                     new Client(width, height, data, null);

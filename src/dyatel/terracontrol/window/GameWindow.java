@@ -106,7 +106,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
         debug.println("Stopping" + title + "...");
         running = false;
 
-        connection.stop();
+        if (connection != null) connection.stop();
         try {
             thread.join();
         } catch (InterruptedException e) {

@@ -85,11 +85,9 @@ public class ClientConnection extends Connection {
             ArrayList<CellMaster> masters = level.getMasters();
 
             int start = Integer.parseInt(dataR[0]);
-            int end = Integer.parseInt(dataR[1]);
-
             if (start == receivedMasters) {
-                for (int i = start; i <= end; i++) {
-                    int masterColor = Integer.parseInt(dataR[i - start + 2]);
+                for (int i = start; i < start + dataR.length - 1; i++) {
+                    int masterColor = Integer.parseInt(dataR[1 + i - start]);
                     CellMaster master = masters.get(i);
                     master.setColorID(masterColor);
                     master.setID(i);
@@ -101,16 +99,14 @@ public class ClientConnection extends Connection {
 
             window.statusBar[0] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
         } else if (code == CODE_CELLS) {
-            int start = Integer.parseInt(dataR[0]);
-            int end = Integer.parseInt(dataR[1]);
-
-            int width = level.getWidth();
-            int height = level.getHeight();
             ArrayList<CellMaster> masters = level.getMasters();
+            int width = level.getWidth();
+            int cells = width * level.getHeight();
 
+            int start = Integer.parseInt(dataR[0]);
             if (start == receivedCells) {
-                for (int i = start; i <= end; i++) {
-                    int masterID = Integer.parseInt(dataR[i - start + 2]);
+                for (int i = start; i < start + dataR.length - 1; i++) {
+                    int masterID = Integer.parseInt(dataR[1 + i - start]);
                     new Cell(i % width, i / width, masters.get(masterID));
                     receivedCells++;
                 }
@@ -118,7 +114,7 @@ public class ClientConnection extends Connection {
                 debug.println("Received wrong cells, ignoring (received from " + start + ", need from " + receivedCells + ")");
             }
 
-            window.statusBar[0] = "Cells: " + receivedCells * 100 / (width * height) + "%";
+            window.statusBar[0] = "Cells: " + receivedCells * 100 / cells + "%";
         } else if (code == CODE_TURN) {
             int turn = Integer.parseInt(dataR[0]);
             // Making out turn
@@ -164,22 +160,13 @@ public class ClientConnection extends Connection {
     public void receiveLevel() {
         levelReceiver = new Thread("LevelReceiver") {
             public void run() {
-                int perRequest;
-
-                int width = level.getWidth();
-                int height = level.getHeight();
                 int masters = level.getMasters().size();
+                int cells = level.getWidth() * level.getHeight();
 
                 // Requesting masters
-                // Calculating the number of max possible masters per request
-                perRequest = (MESSAGE_SIZE - 2 * (String.valueOf(masters).length()) - 1) / (String.valueOf(level.getColors().length).length() + 1) - 1;
                 while (receivedMasters < masters && running) {
                     try {
-                        if (receivedCells + perRequest < masters)
-                            send(CODE_MASTERS, receivedMasters + "x" + (receivedMasters + perRequest));
-                        else
-                            send(CODE_MASTERS, receivedMasters + "x" + masters);
-
+                        send(CODE_MASTERS, String.valueOf(receivedMasters));
                         sleep(100);
                     } catch (InterruptedException e) {
                         ErrorLogger.add(e);
@@ -187,15 +174,9 @@ public class ClientConnection extends Connection {
                 }
 
                 // Requesting cells
-                // Calculating the number of max possible cells per request
-                perRequest = (MESSAGE_SIZE - 2 * (String.valueOf(width * height).length()) - 1) / (String.valueOf(masters).length() + 1) - 1;
-                while (receivedCells < width * height && running) {
+                while (receivedCells < cells && running) {
                     try {
-                        if (receivedCells + perRequest < width * height)
-                            send(CODE_CELLS, receivedCells + "x" + (receivedCells + perRequest));
-                        else
-                            send(CODE_CELLS, receivedCells + "x" + width * height);
-
+                        send(CODE_CELLS, String.valueOf(receivedCells));
                         sleep(100);
                     } catch (InterruptedException e) {
                         ErrorLogger.add(e);

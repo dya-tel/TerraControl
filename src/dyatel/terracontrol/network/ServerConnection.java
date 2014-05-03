@@ -76,60 +76,27 @@ public class ServerConnection extends Connection {
                 players[player].send(CODE_DATA, data);
             }
         } else if (code == CODE_MASTERS) {
-            new Thread("MasterSender") {
-                public void run() {
-                    int start = Integer.parseInt(dataR[0]);
-                    int end = Integer.parseInt(dataR[1]);
+            ArrayList<CellMaster> masters = level.getMasters();
 
-                    ArrayList<CellMaster> masters = level.getMasters();
-
-                    if (end >= masters.size()) end = masters.size() - 1;
-
-                    String data = "";
-                    String temp;
-                    int messageStart = start;
-
-                    for (int i = start; i <= end; i++) {
-                        int color = masters.get(i).getColorID();
-                        temp = messageStart + "x";
-                        if ((temp + i + data + "x" + color).length() > MESSAGE_SIZE) {
-                            send(CODE_MASTERS, temp + (i - 1) + data, address, port);
-                            messageStart = i;
-                            data = "";
-                        }
-                        data += "x" + color;
-                    }
-                    send(CODE_MASTERS, messageStart + "x" + end + data, address, port);
-                }
-            }.start();
+            int start = Integer.parseInt(dataR[0]);
+            String data = String.valueOf(start);
+            int i = start;
+            while (i < masters.size() && (data + "x" + masters.get(i).getColorID()).length() <= MESSAGE_SIZE) {
+                data += "x" + masters.get(i++).getColorID();
+            }
+            send(CODE_MASTERS, data, address, port);
         } else if (code == CODE_CELLS) {
-            new Thread("LevelSender") {
-                public void run() {
-                    int start = Integer.parseInt(dataR[0]);
-                    int end = Integer.parseInt(dataR[1]);
+            int width = level.getWidth();
+            int cells = width * level.getHeight();
 
-                    int width = level.getWidth();
-                    int height = level.getHeight();
-                    if (start > width * height) return;
-                    if (end >= width * height) end = width * height - 1;
-
-                    String data = "";
-                    String temp;
-                    int messageStart = start;
-
-                    for (int i = start; i <= end; i++) {
-                        int id = level.getMaster(i % width, i / width).getID();
-                        temp = messageStart + "x";
-                        if ((temp + i + data + "x" + id).length() > MESSAGE_SIZE) {
-                            send(CODE_CELLS, temp + (i - 1) + data, address, port);
-                            messageStart = i;
-                            data = "";
-                        }
-                        data += "x" + id;
-                    }
-                    send(CODE_CELLS, messageStart + "x" + end + data, address, port);
-                }
-            }.start();
+            int start = Integer.parseInt(dataR[0]);
+            String data = String.valueOf(start);
+            int i = start;
+            while (i < cells && (data + "x" + level.getMaster(i % width, i / width).getID()).length() <= MESSAGE_SIZE) {
+                data += "x" + level.getMaster(i % width, i / width).getID();
+                i++;
+            }
+            send(CODE_CELLS, data, address, port);
         } else if (code == CODE_READY) {
             if (player != -1 && !players[player].isReady()) {
                 players[ready++].ready();

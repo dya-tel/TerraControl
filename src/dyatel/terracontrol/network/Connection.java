@@ -11,7 +11,7 @@ import java.net.InetAddress;
 
 public abstract class Connection {
 
-    public static final int BUFFER_SIZE = 1024;
+    public static final int BUFFER_SIZE = 4096;
     public static final int MESSAGE_SIZE = BUFFER_SIZE - 1;
 
     protected static final byte CODE_CONNECT = 0;

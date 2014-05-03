@@ -46,7 +46,8 @@ public abstract class GameWindow extends Canvas implements Runnable {
         this.height = height;
         this.title = title;
         this.debug = debug;
-        this.bind = bind;
+        this.bind = bind; // Binding other window to us
+        if (bind != null) bind.bind = this; // Binding us to other window
         noGUI = data.getBoolean("noGUI");
 
         // Creating input managers

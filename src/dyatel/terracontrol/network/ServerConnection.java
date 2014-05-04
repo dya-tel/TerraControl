@@ -172,6 +172,10 @@ public class ServerConnection extends Connection {
         return currentPlayer == 0 ? players.length - 1 : currentPlayer - 1;
     }
 
+    public int getCurrentPlayer() {
+        return currentPlayer;
+    }
+
     private void startTurnManager() {
         state = 0;
         turnManager = new Thread() {

@@ -8,7 +8,7 @@ import dyatel.terracontrol.window.GameWindow;
 
 import java.util.ArrayList;
 
-public class ClientLevel extends Level {
+public class ClientLevel extends BasicLevel {
 
     protected Player[] players;
     protected int playerID;

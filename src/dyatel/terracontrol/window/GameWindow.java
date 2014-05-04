@@ -3,7 +3,7 @@ package dyatel.terracontrol.window;
 import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.input.Keyboard;
 import dyatel.terracontrol.input.Mouse;
-import dyatel.terracontrol.level.Level;
+import dyatel.terracontrol.level.BasicLevel;
 import dyatel.terracontrol.network.Connection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
@@ -31,7 +31,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
     protected Screen screen; // Renderer
     protected Keyboard keyboard; // Keyboard input manager
     protected Mouse mouse; // Mouse input manager
-    protected Level level; // Level
+    protected BasicLevel level; // Level
     protected Connection connection; // Connection manager
 
     public String[] statusBar = {"", "", "", "", "", ""}; // Output on bottom panel
@@ -177,7 +177,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
         return mouse;
     }
 
-    public abstract Level getLevel();
+    public abstract BasicLevel getLevel();
 
     public abstract Connection getConnection();
 

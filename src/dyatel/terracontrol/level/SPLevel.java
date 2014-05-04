@@ -1,6 +1,9 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
+import dyatel.terracontrol.level.generation.FillGenerator;
+import dyatel.terracontrol.level.generation.GeneratableLevel;
+import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Util;
@@ -8,9 +11,11 @@ import dyatel.terracontrol.window.GameWindow;
 
 import java.util.Random;
 
-public class SPLevel extends Level {
+public class SPLevel extends BasicLevel implements GeneratableLevel {
 
     private Random random = Util.getRandom();
+
+    private Generator generator;
 
     private int state = -1; // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - won, 4 - lost, 5 - draw
 
@@ -19,11 +24,6 @@ public class SPLevel extends Level {
     private int currentPlayer; // Player that is making turn
 
     private boolean endAt50; // Game will end when someone captures more than a half of field if true
-
-    private long genStart; // Level generation start time
-
-    private int timer = 0; // Update counter
-    private int delay = 2; // Skipped updates per generation (slow generator only)
 
     private Cell currentCell; // Cell player is pointing on
     private int currentColorID; // Its place in array
@@ -46,18 +46,7 @@ public class SPLevel extends Level {
             colors[i] = data.getInteger("color" + i);
         }
 
-        // Choosing generation way
-        genStart = System.currentTimeMillis();
-        if (data.getBoolean("fastGeneration")) {
-            debug.println("Using fast generation...");
-            // Fill field with masters
-            for (int i = 0; i < cells.length; i++) {
-                new Cell(i % width, i / width, new CellMaster(this));
-            }
-        } else {
-            debug.println("Using standard generation...");
-            addMasters(width * height * 4 / 5, width * height * 5 / 5); // Standard generation
-        }
+        generator = new FillGenerator(this);
 
         players = new Player[data.getInteger("players")];
         endAt50 = data.getBoolean("endAt50");
@@ -65,19 +54,6 @@ public class SPLevel extends Level {
         state = 0;
 
         initialized = true;
-    }
-
-    private void addMasters(int min, int max) {
-        int masters = random.nextInt(max - min + 1) + min;
-        debug.println("Going to add " + masters + " masters");
-        for (int i = 0; i < masters; i++) {
-            int x = random.nextInt(width);
-            int y = random.nextInt(height);
-            if (getCell(x, y) == null) {
-                new Cell(x, y, new CellMaster(this));
-            }
-        }
-        debug.println("Added " + this.masters.size() + " masters");
     }
 
     protected void sideUpdate() {
@@ -117,31 +93,8 @@ public class SPLevel extends Level {
 
         // Level generation
         if (state == 0) {
-            // Checking progress
-            int gen = 0;
-            for (int i = 0; i < width * height; i++) {
-                if (cells[i] != null) gen++;
-            }
-            if (gen != width * height) {
-                window.statusBar[0] = "Generated: " + gen * 100 / (width * height) + "%";
-            } else {
-                debug.println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
-
-                int tempC = 0;
-                for (CellMaster master : masters) {
-                    tempC += master.getCells().size();
-                    master.setID(masters.indexOf(master));
-                }
-                debug.println("Checking cells... " + ((tempC == width * height) ? "OK" : "Failed: " + tempC + "/" + width * height));
-                state = 1;
-            }
-
-            // Slow generation if needed
-            if (timer > 0) timer--;
-            if (timer == 0) {
-                for (CellMaster master : masters) master.generate();
-                timer = delay;
-            }
+            window.statusBar[1] = "Generated: " + generator.getGeneratedPercent() + "%";
+            generator.generate(cells);
         }
 
         // Making turns
@@ -156,7 +109,6 @@ public class SPLevel extends Level {
                     turn = i;
                 }
             }
-
             // Making turn
             players[currentPlayer].addTurn(turn);
             currentPlayer = nextPlayer();
@@ -168,7 +120,7 @@ public class SPLevel extends Level {
                 if (currentMaster != null && currentMaster.getOwner() == null) {
                     players[placedPlayers++] = new Player(currentMaster, placedPlayers - 1, window.getConnection());
                     if (placedPlayers == players.length) {
-                        currentPlayer = 0;//random.nextInt(players.length);
+                        currentPlayer = random.nextInt(players.length);
                         state = 2;
                     }
                 }
@@ -192,32 +144,10 @@ public class SPLevel extends Level {
                 return;
             }
         }
+    }
 
-        /*
-        // Find winner
-        int max = -1; // Max captured cells
-        int same = 0; // Needed to determine draw
-        for (int i = 0; i < players.length; i++) {
-            int cells = players[i].getMaster().getCells().size();
-            if (cells > max) {
-                max = cells;
-                same = 0;
-            } else if (cells == max) same++;
-        }
-        // Send result to every player
-        for (Player player : players) {
-            int cells = player.getMaster().getCells().size();
-            if (cells < max) {
-                player.send(CODE_STATE, "2");
-            } else if (cells == max) {
-                if (same == 0)
-                    player.send(CODE_STATE, "1");
-                else
-                    player.send(CODE_STATE, "3");
-            }
-        }
-
-        */
+    public void onLevelGenerated() {
+        state = 1;
     }
 
     private int nextPlayer() {
@@ -235,8 +165,7 @@ public class SPLevel extends Level {
                 same = 0;
             } else if (cells == max) same++;
         }
-        // Send result to every player
-
+        // Determining result
         int cells = players[0].getMaster().getCells().size(); // Player`s cells
         if (cells < max) {
             state = 4;
@@ -246,7 +175,10 @@ public class SPLevel extends Level {
             else
                 state = 5;
         }
+    }
 
+    public Cell[] getCells() {
+        return cells;
     }
 
     public void render(Screen screen) {

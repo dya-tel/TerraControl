@@ -1,31 +1,24 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
+import dyatel.terracontrol.level.generation.GeneratableLevel;
+import dyatel.terracontrol.level.generation.Generator;
+import dyatel.terracontrol.level.generation.PointGenerator;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.network.ServerConnection;
 import dyatel.terracontrol.util.DataArray;
-import dyatel.terracontrol.util.Util;
 import dyatel.terracontrol.window.GameWindow;
 
-import java.util.Random;
+public class ServerLevel extends BasicLevel implements GeneratableLevel {
 
-public class ServerLevel extends Level {
+    private Generator generator;
 
-    private Random random = Util.getRandom();
+    private int state = -1; // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - end
 
     private Player[] players;
     private int placedPlayers = 0;
 
     private boolean endAt50;
-
-    private boolean generated = false;
-    private boolean placingPlayers = false;
-    private boolean captured = false;
-
-    private long genStart; // Level generation start time
-
-    private int timer = 0; // Update counter
-    private int delay = 2; // Skipped updates per generation (slow generator only)
 
     public ServerLevel(DataArray data, GameWindow window) {
         super(data.getInteger("cellSize"), window);
@@ -44,36 +37,14 @@ public class ServerLevel extends Level {
             colors[i] = data.getInteger("color" + i);
         }
 
-        // Choosing generation way
-        genStart = System.currentTimeMillis();
-        if (data.getBoolean("fastGeneration")) {
-            debug.println("Using fast generation...");
-            // Fill field with masters
-            for (int i = 0; i < cells.length; i++) {
-                new Cell(i % width, i / width, new CellMaster(this));
-            }
-        } else {
-            debug.println("Using standard generation...");
-            addMasters(width * height * 4 / 5, width * height * 5 / 5); // Standard generation
-        }
+        generator = new PointGenerator(this, width * height * 1 / 5, width * height * 2 / 5);
 
         players = new Player[data.getInteger("players")];
         endAt50 = data.getBoolean("endAt50");
 
-        initialized = true;
-    }
+        state = 0;
 
-    private void addMasters(int min, int max) {
-        int masters = random.nextInt(max - min + 1) + min;
-        debug.println("Going to add " + masters + " masters");
-        for (int i = 0; i < masters; i++) {
-            int x = random.nextInt(width);
-            int y = random.nextInt(height);
-            if (getCell(x, y) == null) {
-                new Cell(x, y, new CellMaster(this));
-            }
-        }
-        debug.println("Added " + this.masters.size() + " masters");
+        initialized = true;
     }
 
     protected void sideUpdate() {
@@ -85,50 +56,30 @@ public class ServerLevel extends Level {
         }
         window.statusBar[2] = mouseLX + " " + mouseLY;
 
-        // Updating tick rate
-        if (keys[7] && keyDelay == -1) {
-            keyDelay = 10;
-            delay++;
-        }
-        if (keys[8] && keyDelay == -1) {
-            keyDelay = 10;
-            if (delay > 1) delay--;
+        // Printing current state
+        switch (state) {
+            case -1:
+                window.statusBar[1] = "Waiting...";
+                break;
+            // case 0 is managed in level generation for now
+            case 1:
+                window.statusBar[1] = "Placing players: " + placedPlayers + "/" + players.length;
+                break;
+            case 2:
+                window.statusBar[1] = "Current player: " + ((ServerConnection) window.getConnection()).getCurrentPlayer();
+                break;
+            case 3:
+                window.statusBar[1] = "Game end.";
+                break;
         }
 
         // Level generation
-        if (!generated) {
-            // Checking progress
-            int gen = 0;
-            for (int i = 0; i < width * height; i++) {
-                if (cells[i] != null) gen++;
-            }
-            if (gen != width * height) {
-                window.statusBar[0] = "Generated: " + gen * 100 / (width * height) + "%";
-            } else {
-                debug.println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
-
-                int tempC = 0;
-                for (CellMaster master : masters) {
-                    tempC += master.getCells().size();
-                    master.setID(masters.indexOf(master));
-                }
-                debug.println("Checking cells... " + ((tempC == width * height) ? "OK" : "Failed: " + tempC + "/" + width * height));
-
-                window.statusBar[0] = "Place players: 0/" + players.length;
-                placingPlayers = true;
-
-                generated = true;
-            }
-
-            // Slow generation if needed
-            if (timer > 0) timer--;
-            if (timer == 0) {
-                for (CellMaster master : masters) master.generate();
-                timer = delay;
-            }
+        if (state == 0) {
+            window.statusBar[1] = "Generated: " + generator.getGeneratedPercent() + "%";
+            generator.generate(cells);
         }
 
-        if (mouse.isClicked() && placingPlayers) {
+        if (mouse.isClicked() && state == 1) {
             CellMaster currentMaster = getMaster(mouseLX, mouseLY);
             if (currentMaster != null && currentMaster.getOwner() == null) {
                 players[placedPlayers++] = new Player(currentMaster, placedPlayers - 1, window.getConnection());
@@ -136,12 +87,12 @@ public class ServerLevel extends Level {
 
                 if (placedPlayers == players.length) {
                     ((ServerConnection) window.getConnection()).createPlayers(players);
-                    placingPlayers = false;
+                    state = 2;
                 }
             }
         }
 
-        if (!generated || placingPlayers || captured) return;
+        if (state != 2) return;
 
         // Checking if level is captured
         int cCells = 0; // Captured cells
@@ -150,14 +101,22 @@ public class ServerLevel extends Level {
             if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
                 debug.println("Captured level!");
                 ((ServerConnection) window.getConnection()).gameOver();
-                captured = true;
+                state = 3;
                 return;
             }
         }
     }
 
+    public void onLevelGenerated() {
+        state = 1;
+    }
+
     public boolean isGenerated() {
-        return generated;
+        return state > 0;
+    }
+
+    public Cell[] getCells() {
+        return cells;
     }
 
     public void render(Screen screen) {

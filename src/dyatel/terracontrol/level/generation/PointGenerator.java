@@ -6,15 +6,17 @@ import dyatel.terracontrol.util.Debug;
 
 public class PointGenerator extends Generator {
 
-    public PointGenerator(GeneratableLevel level, int min, int max) {
+    public PointGenerator(GeneratableLevel level) {
         super(level);
 
         Debug debug = level.getDebug();
 
         // Adding masters
-        int masters = random.nextInt(max - min + 1) + min;
         int width = level.getWidth();
         int height = level.getHeight();
+        int minMasters = width * height * 1 / 5;
+        int maxMasters = width * height * 3 / 5;
+        int masters = random.nextInt(maxMasters - minMasters + 1) + minMasters;
         debug.println("Going to add " + masters + " masters");
         for (int i = 0; i < masters; i++) {
             int x = random.nextInt(width);
@@ -32,4 +34,9 @@ public class PointGenerator extends Generator {
         for (CellMaster master : level.getMasters()) master.generate();
         if (isGenerated()) onLevelGenerated();
     }
+
+    public static String getName() {
+        return "Point";
+    }
+
 }

@@ -1,7 +1,6 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.Screen;
-import dyatel.terracontrol.level.generation.FillGenerator;
 import dyatel.terracontrol.level.generation.GeneratableLevel;
 import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.network.Player;
@@ -46,7 +45,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
             colors[i] = data.getInteger("color" + i);
         }
 
-        generator = new FillGenerator(this);
+        generator = Generator.parseGenerator(data.getString("generatorType"), this);
 
         players = new Player[data.getInteger("players")];
         endAt50 = data.getBoolean("endAt50");

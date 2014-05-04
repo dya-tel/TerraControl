@@ -2,6 +2,7 @@ package dyatel.terracontrol.level.generation;
 
 import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
+import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.util.Util;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ public abstract class Generator {
     protected GeneratableLevel level;
 
     protected long genStart = -1; // System time at the moment of first generate() call
+
+    public static final Class[] types = {FillGenerator.class, PointGenerator.class}; // All available generators
 
     public Generator(GeneratableLevel level) {
         this.level = level;
@@ -47,6 +50,22 @@ public abstract class Generator {
             tempC += master.getCells().size();
         }
         return tempC == level.getWidth() * level.getHeight();
+    }
+
+    public static Generator parseGenerator(String string, GeneratableLevel level) {
+        // Finding generator
+        for (Class generator : types) {
+            try {
+                if (generator.getMethod("getName").invoke(null).equals(string)) {
+                    // Returning new instance of parsed generator
+                    return (Generator) generator.getConstructor(GeneratableLevel.class).newInstance(level);
+                }
+            } catch (Exception e) {
+                ErrorLogger.add(e);
+                return null;
+            }
+        }
+        return null; // If found nothing
     }
 
 }

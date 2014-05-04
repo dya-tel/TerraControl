@@ -1,5 +1,6 @@
 package dyatel.terracontrol;
 
+import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.ErrorLogger;
@@ -44,6 +45,18 @@ public class Launcher extends JFrame {
         fastGenerationCheck.setHorizontalAlignment(JCheckBox.CENTER);
         fastGenerationCheck.setSelected(true);
 
+        // Finding generator names
+        Class[] generators = Generator.types;
+        String[] generatorTypes = new String[generators.length];
+        for (int i = 0; i < generatorTypes.length; i++) {
+            try {
+                generatorTypes[i] = (String) generators[i].getMethod("getName").invoke(null);
+            } catch (Exception e) {
+                ErrorLogger.add(e);
+            }
+        }
+        final JComboBox generatorTypeBox = new JComboBox<String>(generatorTypes);
+
         final JCheckBox endAt50Check = new JCheckBox();
         endAt50Check.setHorizontalAlignment(JCheckBox.CENTER);
         endAt50Check.setSelected(true);
@@ -72,9 +85,9 @@ public class Launcher extends JFrame {
         add(new JLabel());
         add(playersField);
 
-        add(new JLabel("Fast generation"));
+        add(new JLabel("Generator type"));
         add(new JLabel());
-        add(fastGenerationCheck);
+        add(generatorTypeBox);
 
         add(new JLabel("End if captured 50%"));
         add(new JLabel());
@@ -104,7 +117,7 @@ public class Launcher extends JFrame {
                     data.fillInteger("levelHeight", levelHeightField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
                     data.fillInteger("players", playersField.getText());
-                    data.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
+                    data.fillString("generatorType", (String) generatorTypeBox.getSelectedItem());
                     data.fillBoolean("endAt50", endAt50Check.isSelected());
                     data.fillBoolean("noGUI", false);
 
@@ -161,7 +174,7 @@ public class Launcher extends JFrame {
                     data.fillInteger("levelHeight", levelHeightField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
                     data.fillInteger("players", playersField.getText());
-                    data.fillBoolean("fastGeneration", fastGenerationCheck.isSelected());
+                    data.fillString("generatorType", (String) generatorTypeBox.getSelectedItem());
                     data.fillBoolean("endAt50", endAt50Check.isSelected());
                     data.fillBoolean("noGUI", false);
 

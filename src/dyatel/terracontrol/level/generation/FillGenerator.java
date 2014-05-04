@@ -20,4 +20,8 @@ public class FillGenerator extends Generator {
         onLevelGenerated();
     }
 
+    public static String getName() {
+        return "Fill";
+    }
+
 }

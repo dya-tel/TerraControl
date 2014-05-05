@@ -10,11 +10,10 @@ import dyatel.terracontrol.window.GameWindow;
 
 public class ServerLevel extends BasicLevel implements GeneratableLevel {
 
+    // state: -1 - no state, 0 - generating, 1 - placing players, 2 - waiting for players, 3 - playing, 4 - end
+
     private Generator generator;
 
-    private int state = -1; // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - end
-
-    private Player[] players;
     private int placedPlayers = 0;
 
     private boolean endAt50;
@@ -65,9 +64,18 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
                 window.statusBar[1] = "Placing players: " + placedPlayers + "/" + players.length;
                 break;
             case 2:
-                window.statusBar[1] = "Current player: " + ((ServerConnection) window.getConnection()).getCurrentPlayer();
+                int connected = 0;
+                for (Player player : players) if (player.isConnected()) connected++;
+                if (connected < players.length) {
+                    window.statusBar[1] = "Waiting for players: " + connected + "/" + players.length;
+                } else {
+                    window.statusBar[1] = "Players are receiving level";
+                }
                 break;
             case 3:
+                window.statusBar[1] = "Current player: " + ((ServerConnection) window.getConnection()).getCurrentPlayer();
+                break;
+            case 4:
                 window.statusBar[1] = "Game end.";
                 break;
         }
@@ -82,7 +90,6 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
             CellMaster currentMaster = getMaster(mouseLX, mouseLY);
             if (currentMaster != null && currentMaster.getOwner() == null) {
                 players[placedPlayers++] = new Player(currentMaster, placedPlayers - 1, window.getConnection());
-                window.statusBar[0] = "Place players: " + placedPlayers + "/" + players.length;
 
                 if (placedPlayers == players.length) {
                     ((ServerConnection) window.getConnection()).createPlayers(players);
@@ -91,7 +98,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
             }
         }
 
-        if (state != 2) return;
+        if (state != 3) return;
 
         // Checking if level is captured
         int cCells = 0; // Captured cells
@@ -100,7 +107,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
             if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
                 debug.println("Captured level!");
                 ((ServerConnection) window.getConnection()).gameOver();
-                state = 3;
+                state = 4;
                 return;
             }
         }

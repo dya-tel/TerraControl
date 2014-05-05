@@ -10,10 +10,9 @@ import java.util.ArrayList;
 
 public class ClientLevel extends BasicLevel {
 
-    protected Player[] players;
-    protected int playerID;
+    // state: -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
-    protected int state = -1; // -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
+    protected int playerID;
 
     protected Cell currentCell; // Cell player is pointing on
     protected int currentColorID;
@@ -124,10 +123,6 @@ public class ClientLevel extends BasicLevel {
 
     public int getState() {
         return state;
-    }
-
-    public void changeState(int state) {
-        this.state = state;
     }
 
     public void render(Screen screen) {

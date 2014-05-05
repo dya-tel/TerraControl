@@ -15,6 +15,8 @@ public abstract class BasicLevel implements Level {
     protected GameWindow window; // Main window
     protected Debug debug; // Output
 
+    protected int state = -1; // See values in inherited classes
+
     protected boolean initialized = false;
 
     protected int xOff, yOff; // Level offset
@@ -37,6 +39,8 @@ public abstract class BasicLevel implements Level {
     protected ArrayList<Updatable> needUpdate;
 
     protected Cell[] cells;
+
+    protected Player[] players;
 
     protected int[] colors;
 
@@ -150,6 +154,10 @@ public abstract class BasicLevel implements Level {
 
     public int[] getColors() {
         return colors;
+    }
+
+    public void setState(int state) {
+        this.state = state;
     }
 
     public int getColorID(int color) {

@@ -53,11 +53,6 @@ public class ServerConnection extends Connection {
                 if (player == -1 && connected < players.length) {
                     player = connected;
                     players[connected++].connect(address, port);
-                    window.statusBar[0] = "Waiting for players: " + connected + "/" + players.length;
-
-                    if (connected == players.length) {
-                        window.statusBar[0] = "Players are receiving levels: 0/" + players.length;
-                    }
                 }
 
                 // Putting level data
@@ -100,9 +95,9 @@ public class ServerConnection extends Connection {
         } else if (code == CODE_READY) {
             if (player != -1 && !players[player].isReady()) {
                 players[ready++].ready();
-                window.statusBar[0] = "Players are receiving levels: " + ready + "/" + players.length;
 
                 if (ready == players.length) {
+                    level.setState(3);
                     sendEveryoneExcluding(CODE_STATE, "0", -1);
                     startTurnManager();
                 }
@@ -125,7 +120,6 @@ public class ServerConnection extends Connection {
     }
 
     public void createPlayers(Player[] players) {
-        window.statusBar[0] = "Waiting for players: 0/" + players.length;
         this.players = players;
     }
 

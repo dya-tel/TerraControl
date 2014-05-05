@@ -132,7 +132,7 @@ public class ClientConnection extends Connection {
             }
         } else if (code == CODE_STATE) {
             int state = Integer.parseInt(message);
-            level.changeState(state);
+            level.setState(state);
         } else debug.println("Unknown code " + code);
     }
 

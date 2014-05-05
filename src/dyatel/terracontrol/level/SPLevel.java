@@ -12,13 +12,12 @@ import java.util.Random;
 
 public class SPLevel extends BasicLevel implements GeneratableLevel {
 
+    // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - won, 4 - lost, 5 - draw
+
     private Random random = Util.getRandom();
 
     private Generator generator;
 
-    private int state = -1; // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - won, 4 - lost, 5 - draw
-
-    private Player[] players; // Players
     private int placedPlayers = 0; // How many players are placed
     private int currentPlayer; // Player that is making turn
 

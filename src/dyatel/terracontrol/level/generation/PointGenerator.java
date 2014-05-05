@@ -32,10 +32,11 @@ public class PointGenerator extends Generator {
         if (genStart == -1) genStart = System.currentTimeMillis();
 
         for (CellMaster master : level.getMasters()) master.generate();
+
         if (isGenerated()) onLevelGenerated();
     }
 
-    public static String getName() {
+    public String getName() {
         return "Point";
     }
 

@@ -45,17 +45,7 @@ public class Launcher extends JFrame {
         fastGenerationCheck.setHorizontalAlignment(JCheckBox.CENTER);
         fastGenerationCheck.setSelected(true);
 
-        // Finding generator names
-        Class[] generators = Generator.types;
-        String[] generatorTypes = new String[generators.length];
-        for (int i = 0; i < generatorTypes.length; i++) {
-            try {
-                generatorTypes[i] = (String) generators[i].getMethod("getName").invoke(null);
-            } catch (Exception e) {
-                ErrorLogger.add(e);
-            }
-        }
-        final JComboBox generatorTypeBox = new JComboBox<String>(generatorTypes);
+        final JComboBox generatorTypeBox = new JComboBox<String>(Generator.types);
 
         final JCheckBox endAt50Check = new JCheckBox();
         endAt50Check.setHorizontalAlignment(JCheckBox.CENTER);

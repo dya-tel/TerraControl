@@ -12,15 +12,18 @@ public class FillGenerator extends Generator {
     public void generate(Cell[] cells) {
         if (genStart == -1) genStart = System.currentTimeMillis();
 
+        if (isGenerated()) {
+            onLevelGenerated();
+            return;
+        }
+
         int width = level.getWidth();
         for (int i = 0; i < cells.length; i++) {
             new Cell(i % width, i / width, new CellMaster(level));
         }
-
-        onLevelGenerated();
     }
 
-    public static String getName() {
+    public String getName() {
         return "Fill";
     }
 

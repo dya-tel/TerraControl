@@ -31,9 +31,13 @@ public class PointGenerator extends Generator {
     public void generate(Cell[] cells) {
         if (genStart == -1) genStart = System.currentTimeMillis();
 
-        for (CellMaster master : level.getMasters()) master.generate();
+        if (isGenerated()) {
+            level.getDebug().println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
+            onLevelGenerated();
+            return;
+        }
 
-        if (isGenerated()) onLevelGenerated();
+        for (CellMaster master : level.getMasters()) master.generate();
     }
 
     public String getName() {

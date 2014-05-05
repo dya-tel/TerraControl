@@ -13,6 +13,7 @@ public class FillGenerator extends Generator {
         if (genStart == -1) genStart = System.currentTimeMillis();
 
         if (isGenerated()) {
+            level.getDebug().println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
             onLevelGenerated();
             return;
         }

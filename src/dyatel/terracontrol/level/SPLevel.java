@@ -4,6 +4,7 @@ import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.level.generation.GeneratableLevel;
 import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.network.Player;
+import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Util;
 import dyatel.terracontrol.window.GameWindow;
@@ -130,6 +131,12 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
             }
         }
 
+        if (state == 2) {
+            // Calculating number of cells that we can capture
+            int availableCells = willCapture(players[0], currentColorID);
+            window.statusBar[4] = String.valueOf(players[0].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
+        }
+
         if (state != 2) return;
 
         // Checking if level is captured
@@ -190,7 +197,17 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
             int xEnd = Math.min(xStart + window.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
-                cells[x + y * width].render(screen, colors[getMaster(x, y).getColorID()]); // Rendering
+                CellMaster master = getMaster(x, y);
+
+                // Calculating color
+                int color = Color.subtract(colors[master.getColorID()], 0xaa, 0xaa, 0xaa);
+                if (currentCell == null || state != 2) {
+                    color = colors[master.getColorID()];
+                } else if (players[0] != null && (master.getOwner() == players[0] || (master.getOwner() == null && players[0].getMaster().isNeighbor(master) && master.getColorID() == currentColorID))) {
+                    color = currentColor;
+                }
+
+                cells[x + y * width].render(screen, color); // Rendering
             }
         }
     }

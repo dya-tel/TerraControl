@@ -12,13 +12,13 @@ public class ClientLevel extends BasicLevel {
 
     // state: -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
-    protected int playerID;
+    protected int playerID; // Client`s player ID
 
     protected Cell currentCell; // Cell player is pointing on
-    protected int currentColorID;
-    public int currentColor;
+    protected int currentColorID; // Color ID of currentCell
+    public int currentColor; // Color of currentCell
 
-    protected boolean needToMakeATurn = false;
+    protected boolean needToMakeATurn = false; // True if it is client`s turn
 
     public ClientLevel(int cellSize, GameWindow window) {
         super(cellSize, window);
@@ -113,16 +113,8 @@ public class ClientLevel extends BasicLevel {
         return players.length;
     }
 
-    public boolean isMyTurn() {
-        return needToMakeATurn;
-    }
-
     public void needTurn() {
         needToMakeATurn = true;
-    }
-
-    public int getState() {
-        return state;
     }
 
     public void render(Screen screen) {

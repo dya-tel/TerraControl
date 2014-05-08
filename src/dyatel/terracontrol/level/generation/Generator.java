@@ -9,9 +9,9 @@ import java.util.Random;
 
 public abstract class Generator {
 
-    protected Random random = Util.getRandom();
+    protected Random random = Util.getRandom(); // Randomizer
 
-    protected GeneratableLevel level;
+    protected GeneratableLevel level; // Level that we are generating
 
     protected long genStart = -1; // System time at the moment of first generate() call
 
@@ -26,8 +26,8 @@ public abstract class Generator {
 
     protected void onLevelGenerated() {
         ArrayList<CellMaster> masters = level.getMasters();
-        for (int i = 0; i < masters.size(); i++) masters.get(i).setID(i);
-        level.onLevelGenerated();
+        for (int i = 0; i < masters.size(); i++) masters.get(i).setID(i); // Setting IDs to masters
+        level.onLevelGenerated(); // Saying level that we are done
     }
 
     public int getGeneratedPercent() {
@@ -39,17 +39,9 @@ public abstract class Generator {
     public boolean isGenerated() {
         int width = level.getWidth();
         for (int i = 0; i < width * level.getHeight(); i++) {
-            if (level.getCell(i % width, i / width) == null) return false;
+            if (level.getCell(i % width, i / width) == null) return false; // Not generated if there is null cell
         }
         return true;
-    }
-
-    public boolean check() {
-        int tempC = 0;
-        for (CellMaster master : level.getMasters()) {
-            tempC += master.getCells().size();
-        }
-        return tempC == level.getWidth() * level.getHeight();
     }
 
     public abstract String getName();

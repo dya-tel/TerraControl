@@ -7,31 +7,28 @@ import java.net.InetAddress;
 
 public class Player {
 
-    private int id;
+    private int id; // ID
 
-    private Level level;
+    private Level level; // Our level
 
-    private CellMaster master;
+    private CellMaster master; // Master we are controlling
 
-    private Connection connection;
-    private InetAddress address;
-    private int port;
+    private Connection connection; // Connection to send messages
+    private InetAddress address; // Client address
+    private int port; // Client port
 
-    private boolean connected;
-    private boolean ready;
+    private boolean connected; // Do we have a client
+    private boolean ready; // Is client ready to play
 
-    private int turns = 0;
-    private int lastTurn = -1;
-
-    public Player(int x, int y, int id, Level level, Connection connection) {
-        this(level.getCell(x, y).getMaster(), id, connection);
-    }
+    private int turns = 0; // How many turns we made
+    private int lastTurn = -1; // Last color ID
 
     public Player(CellMaster master, int id, Connection connection) {
         this.id = id;
         this.connection = connection;
         level = master.getLevel();
 
+        // Adding on level
         if (master.getOwner() == null) {
             this.master = master;
             master.setOwner(this);
@@ -40,24 +37,8 @@ public class Player {
         }
     }
 
-    public int getID() {
-        return id;
-    }
-
     public CellMaster getMaster() {
         return master;
-    }
-
-    public int getColorID() {
-        return master.getColorID();
-    }
-
-    public InetAddress getAddress() {
-        return address;
-    }
-
-    public int getPort() {
-        return port;
     }
 
     public void connect(InetAddress address, int port) {

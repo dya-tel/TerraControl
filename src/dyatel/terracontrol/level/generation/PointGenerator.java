@@ -31,13 +31,14 @@ public class PointGenerator extends Generator {
     public void generate(Cell[] cells) {
         if (genStart == -1) genStart = System.currentTimeMillis();
 
+        // Checking if level is generated
         if (isGenerated()) {
             level.getDebug().println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
             onLevelGenerated();
             return;
         }
 
-        for (CellMaster master : level.getMasters()) master.generate();
+        for (CellMaster master : level.getMasters()) master.generate(); // Generating every master
     }
 
     public String getName() {

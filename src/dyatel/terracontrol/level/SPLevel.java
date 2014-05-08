@@ -15,9 +15,9 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
 
     // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - won, 4 - lost, 5 - draw
 
-    private Random random = Util.getRandom();
+    private Random random = Util.getRandom(); // Random
 
-    private Generator generator;
+    private Generator generator; // Level generator
 
     private int placedPlayers = 0; // How many players are placed
     private int currentPlayer; // Player that is making turn
@@ -45,6 +45,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
             colors[i] = data.getInteger("color" + i);
         }
 
+        // Finding generator
         generator = Generator.parseGenerator(data.getString("generatorType"), this);
 
         players = new Player[data.getInteger("players")];
@@ -113,8 +114,10 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
             currentPlayer = nextPlayer();
         }
 
+        // Managing mouse click
         if (mouse.isClicked()) {
             if (state == 1) {
+                // Placing players
                 CellMaster currentMaster = getMaster(mouseLX, mouseLY);
                 if (currentMaster != null && currentMaster.getOwner() == null) {
                     players[placedPlayers++] = new Player(currentMaster, placedPlayers - 1, window.getConnection());
@@ -124,6 +127,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
                     }
                 }
             } else if (state == 2) {
+                // Making turns
                 if (currentPlayer == 0 && currentColorID != -1 && willCapture(players[0], currentColorID) > 0) {
                     players[0].addTurn(currentColorID);
                     currentPlayer = nextPlayer();
@@ -163,8 +167,8 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
         // Find winner
         int max = -1; // Max captured cells
         int same = 0; // Needed to determine draw
-        for (int i = 0; i < players.length; i++) {
-            int cells = players[i].getMaster().getCells().size();
+        for (Player player : players) {
+            int cells = player.getMaster().getCells().size();
             if (cells > max) {
                 max = cells;
                 same = 0;

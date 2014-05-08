@@ -12,14 +12,14 @@ import java.util.ArrayList;
 
 public class ServerConnection extends Connection {
 
-    private ServerLevel level;
+    private ServerLevel level; // Our level
 
-    private Player[] players;
-    private int connected = 0;
-    private int ready = 0;
+    private Player[] players; // Array of level, copy of ServerLevel players
+    private int connected = 0; // How many players are connected
+    private int ready = 0; // How many players are ready to play
 
-    private Thread turnManager;
-    private int currentPlayer;
+    private Thread turnManager; // Thread asking for turns
+    private int currentPlayer; // ID of player that is making turn
     private int state = -1; // -1 - waiting connections, 0 - playing, 1 - end
 
     public ServerConnection(int port, Server server) throws Exception {
@@ -27,7 +27,7 @@ public class ServerConnection extends Connection {
 
         level = server.getLevel();
 
-        start();
+        start(); // Starting receiver
     }
 
     protected void process(final DatagramPacket packet) {
@@ -59,9 +59,7 @@ public class ServerConnection extends Connection {
                 String data = level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size();
                 // Putting players
                 data += "x" + players.length + "x" + player;
-                for (int i = 0; i < players.length; i++) {
-                    data += "x" + players[i].getMaster().getID();
-                }
+                for (Player p : players) data += "x" + p.getMaster().getID();
                 // Putting colors into message
                 data += "x" + level.getColors().length;
                 for (int i = 0; i < level.getColors().length; i++) {
@@ -73,6 +71,7 @@ public class ServerConnection extends Connection {
         } else if (code == CODE_MASTERS) {
             ArrayList<CellMaster> masters = level.getMasters();
 
+            // Adding as much color IDs as possible
             int start = Integer.parseInt(dataR[0]);
             String data = String.valueOf(start);
             int i = start;
@@ -84,6 +83,7 @@ public class ServerConnection extends Connection {
             int width = level.getWidth();
             int cells = width * level.getHeight();
 
+            // Adding as much masters as possible
             int start = Integer.parseInt(dataR[0]);
             String data = String.valueOf(start);
             int i = start;
@@ -98,7 +98,7 @@ public class ServerConnection extends Connection {
 
                 if (ready == players.length) {
                     level.setState(3);
-                    sendEveryoneExcluding(CODE_STATE, "0", -1);
+                    sendEveryoneExcluding(CODE_STATE, "0", -1); // Sending to everyone
                     startTurnManager();
                 }
             }
@@ -126,7 +126,7 @@ public class ServerConnection extends Connection {
     private int findPlayer(InetAddress address, int port) {
         if (players == null) return -1;
         for (int i = 0; i < players.length; i++) if (players[i].equals(address, port)) return i;
-        return -1;
+        return -1; // If did not find this player
     }
 
     private void sendEveryoneExcluding(byte code, String message, int exclude) {
@@ -137,8 +137,8 @@ public class ServerConnection extends Connection {
         // Find winner
         int max = -1; // Max captured cells
         int same = 0; // Needed to determine draw
-        for (int i = 0; i < players.length; i++) {
-            int cells = players[i].getMaster().getCells().size();
+        for (Player player : players) {
+            int cells = player.getMaster().getCells().size();
             if (cells > max) {
                 max = cells;
                 same = 0;
@@ -162,10 +162,6 @@ public class ServerConnection extends Connection {
         return currentPlayer == players.length - 1 ? 0 : currentPlayer + 1;
     }
 
-    private int previousPlayer() {
-        return currentPlayer == 0 ? players.length - 1 : currentPlayer - 1;
-    }
-
     public int getCurrentPlayer() {
         return currentPlayer;
     }
@@ -179,8 +175,8 @@ public class ServerConnection extends Connection {
                     String message = String.valueOf(players[currentPlayer].getTurns() + 1); // Player turn ID
 
                     // Adding enemies turns
-                    for (int i = 0; i < players.length; i++) {
-                        message += "x" + players[i].getTurns() + "x" + players[i].getLastTurn();
+                    for (Player player : players) {
+                        message += "x" + player.getTurns() + "x" + player.getLastTurn();
                     }
 
                     // Sending

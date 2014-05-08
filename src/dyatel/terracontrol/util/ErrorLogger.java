@@ -14,7 +14,7 @@ public class ErrorLogger {
 
     private static boolean canAdd = true; // We can add more exceptions if true
 
-    private static ArrayList<Exception> errors = new ArrayList<Exception>();
+    private static ArrayList<Exception> errors = new ArrayList<Exception>(); // List of all exceptions
 
     public synchronized static void add(Exception e) {
         if (canAdd) {

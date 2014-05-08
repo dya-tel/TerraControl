@@ -12,11 +12,11 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
 
     // state: -1 - no state, 0 - generating, 1 - placing players, 2 - waiting for players, 3 - playing, 4 - end
 
-    private Generator generator;
+    private Generator generator; // Level generator
 
-    private int placedPlayers = 0;
+    private int placedPlayers = 0; // How many players we have placed already
 
-    private boolean endAt50;
+    private boolean endAt50; // True if game will end when someone captures at least 50% of level
 
     public ServerLevel(DataArray data, GameWindow window) {
         super(data.getInteger("cellSize"), window);
@@ -35,6 +35,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
             colors[i] = data.getInteger("color" + i);
         }
 
+        // Finding level generator
         generator = Generator.parseGenerator(data.getString("generatorType"), this);
 
         players = new Player[data.getInteger("players")];
@@ -46,6 +47,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
     }
 
     protected void sideUpdate() {
+        // Finding cell under mouse
         Cell currentCell = getCell(mouseLX, mouseLY);
         if (currentCell != null) {
             window.statusBar[1] = String.valueOf(currentCell.getMaster().getID());
@@ -86,6 +88,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
             generator.generate(cells);
         }
 
+        // Placing players
         if (mouse.isClicked() && state == 1) {
             CellMaster currentMaster = getMaster(mouseLX, mouseLY);
             if (currentMaster != null && currentMaster.getOwner() == null) {

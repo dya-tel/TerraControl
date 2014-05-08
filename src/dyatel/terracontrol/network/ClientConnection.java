@@ -6,6 +6,7 @@ import dyatel.terracontrol.level.ClientLevel;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.ErrorLogger;
 import dyatel.terracontrol.window.Client;
+import dyatel.terracontrol.window.GameWindow;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -13,17 +14,19 @@ import java.util.ArrayList;
 
 public class ClientConnection extends Connection {
 
-    private ClientLevel level;
+    protected GameWindow window; // Window
 
-    private InetAddress address;
-    private int port;
+    private ClientLevel level; // Level
 
-    private Thread connecter;
-    private boolean connected = false;
+    private InetAddress address; // Server address
+    private int port; // Server port
 
-    private Thread levelReceiver;
-    private int receivedMasters = 0;
-    private int receivedCells = 0;
+    private Thread connecter; // Thread that tries to connect to the server
+    private boolean connected = false; // True if connected to server
+
+    private Thread levelReceiver; // Thread that receives level
+    private int receivedMasters = 0; // Number of received masters
+    private int receivedCells = 0; // Number of received cells
 
     public ClientConnection(String address, int port, Client client) throws Exception {
         super(client);
@@ -33,8 +36,8 @@ public class ClientConnection extends Connection {
 
         level = client.getLevel();
 
-        start();
-        connect();
+        start(); // Starting receiver
+        connect(); // Starting connecter
     }
 
     protected void process(DatagramPacket packet) {
@@ -86,6 +89,7 @@ public class ClientConnection extends Connection {
 
             int start = Integer.parseInt(dataR[0]);
             if (start == receivedMasters) {
+                // Parsing masters` colors
                 for (int i = start; i < start + dataR.length - 1; i++) {
                     int masterColor = Integer.parseInt(dataR[1 + i - start]);
                     CellMaster master = masters.get(i);
@@ -93,10 +97,7 @@ public class ClientConnection extends Connection {
                     master.setID(i);
                     receivedMasters++;
                 }
-            } else {
-                debug.println("Received wrong masters, ignoring (received from " + start + ", need from " + receivedMasters + ")");
             }
-
             window.statusBar[0] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
         } else if (code == CODE_CELLS) {
             ArrayList<CellMaster> masters = level.getMasters();
@@ -105,23 +106,21 @@ public class ClientConnection extends Connection {
 
             int start = Integer.parseInt(dataR[0]);
             if (start == receivedCells) {
+                // Parsing cells
                 for (int i = start; i < start + dataR.length - 1; i++) {
                     int masterID = Integer.parseInt(dataR[1 + i - start]);
                     new Cell(i % width, i / width, masters.get(masterID));
                     receivedCells++;
                 }
-            } else {
-                debug.println("Received wrong cells, ignoring (received from " + start + ", need from " + receivedCells + ")");
             }
-
             window.statusBar[0] = "Cells: " + receivedCells * 100 / cells + "%";
         } else if (code == CODE_TURN) {
             int turn = Integer.parseInt(dataR[0]);
             // Making out turn
             if (turn == level.getClientPlayer().getTurns()) {
-                send(CODE_TURN, turn + "x" + level.getClientPlayer().getLastTurn());
+                send(CODE_TURN, turn + "x" + level.getClientPlayer().getLastTurn()); // Sending turn
             } else {
-                level.needTurn();
+                level.needTurn(); // Asking level to make a turn
             }
 
             // Getting enemies turns
@@ -137,6 +136,7 @@ public class ClientConnection extends Connection {
     }
 
     protected void waitForThreads() throws InterruptedException {
+        // Waiting for all threads
         if (connecter != null) connecter.join();
         if (levelReceiver != null) levelReceiver.join();
     }

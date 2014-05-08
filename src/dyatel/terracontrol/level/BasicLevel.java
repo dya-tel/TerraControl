@@ -17,32 +17,32 @@ public abstract class BasicLevel implements Level {
 
     protected int state = -1; // See values in inherited classes
 
-    protected boolean initialized = false;
+    protected boolean initialized = false; // Is level initialized
 
     protected int xOff, yOff; // Level offset
     protected int scrollRate = 10; // Pixels per update
 
-    protected int cellSize;
-    protected double zoom = 1;
+    protected int cellSize; // Cell side in pixels
+    protected double zoom = 1; // Zoom
 
     protected int width, height; // Level size in cells
 
     protected Keyboard keyboard; // Keyboard listener
     protected int keyDelay; // Timer that restricts pressing a key every update (60 times per second!)
-    protected boolean[] keys;
+    protected boolean[] keys; // Keyboard keys state
 
     protected Mouse mouse; // Mouse listener
     protected int mouseX, mouseY; // Real mouse coordinates based on position in window
     protected int mouseLX, mouseLY; // Mouse coordinates used on level
 
-    protected ArrayList<CellMaster> masters;
-    protected ArrayList<Updatable> needUpdate;
+    protected ArrayList<CellMaster> masters; // List of masters
+    protected ArrayList<Updatable> needUpdate; // List of updatable objects that want update
 
-    protected Cell[] cells;
+    protected Cell[] cells; // Field
 
-    protected Player[] players;
+    protected Player[] players; // Players
 
-    protected int[] colors;
+    protected int[] colors; // Available colors for cells
 
     protected BasicLevel(int cellSize, GameWindow window) {
         this.cellSize = cellSize;
@@ -74,6 +74,7 @@ public abstract class BasicLevel implements Level {
             mouseLX = (mouseX + xOff) / (getCellSize() + 1);
             mouseLY = (mouseY + yOff) / (getCellSize() + 1);
         } else {
+            // If mouse is out of bounds
             mouseLX = -1;
             mouseLY = -1;
         }
@@ -107,7 +108,7 @@ public abstract class BasicLevel implements Level {
     public abstract void render(Screen screen);
 
     public boolean canSetCell(int x, int y) {
-        // If this coordinates belong to level and there is noting on them, returning true
+        // If this coordinates belong to level and there is no cell, returning true
         return x >= 0 && x < width && y >= 0 && y < height && getCell(x, y) == null;
     }
 
@@ -117,7 +118,7 @@ public abstract class BasicLevel implements Level {
 
     public Cell getCell(int x, int y) {
         if (x < 0 || x >= width || y < 0 || y >= height) {
-            return null;
+            return null; // If out of bounds
         }
         return cells == null ? null : cells[x + y * width];
     }
@@ -203,6 +204,7 @@ public abstract class BasicLevel implements Level {
         zoom += n * 0.5d;
 
         int diff = (int) ((cellSize * zoom) - (cellSize * pZoom)); // Cell size change
+        // How many cells changed their size
         int cellsX = (int) ((xOff + window.getWidth() / 2) / ((cellSize * pZoom) + 1));
         int cellsY = (int) ((yOff + window.getFieldHeight() / 2) / ((cellSize * pZoom) + 1));
         changeXOff(cellsX * diff); // Centring x offset

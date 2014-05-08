@@ -22,7 +22,6 @@ public abstract class Connection {
     protected static final byte CODE_CELLS = 5;
     protected static final byte CODE_TURN = 6;
 
-    protected GameWindow window;
     protected Debug debug;
 
     protected DatagramSocket socket;
@@ -34,18 +33,16 @@ public abstract class Connection {
     protected int received = 0;
 
     public Connection(GameWindow window) throws Exception {
-        this.window = window;
         debug = window.getDebug();
 
-        socket = new DatagramSocket();
+        socket = new DatagramSocket(); // Creating socket at any available port
         debug.println("Bound socket at " + socket.getLocalPort());
     }
 
     public Connection(int port, GameWindow window) throws Exception {
-        this.window = window;
         debug = window.getDebug();
 
-        socket = new DatagramSocket(port);
+        socket = new DatagramSocket(port); // Creating socket at specific port, may throw exception
         debug.println("Bound socket at " + socket.getLocalPort());
     }
 
@@ -87,8 +84,8 @@ public abstract class Connection {
 
     protected void send(byte code, String message, InetAddress address, int port) {
         byte[] bytes = new byte[message.length() + 1];
-        bytes[0] = code;
-        System.arraycopy(message.getBytes(), 0, bytes, 1, message.length());
+        bytes[0] = code; // Adding message code
+        System.arraycopy(message.getBytes(), 0, bytes, 1, message.length()); // Moving and shifting message
 
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, port);
         try {

@@ -8,23 +8,23 @@ import java.util.Random;
 
 public class CellMaster implements Updatable {
 
-    private int color;
+    private int color; // Color of master
 
-    private int id;
+    private int id; // ID
 
-    private ArrayList<Cell> newCells = new ArrayList<Cell>();
-    private ArrayList<Cell> cells = new ArrayList<Cell>();
-    private ArrayList<Cell> borderCells = new ArrayList<Cell>();
+    private ArrayList<Cell> newCells = new ArrayList<Cell>(); // Cells that we need to main list
+    private ArrayList<Cell> cells = new ArrayList<Cell>(); // Main cell list
+    private ArrayList<Cell> borderCells = new ArrayList<Cell>(); // Cells that touch different masters
 
-    private ArrayList<CellMaster> neighbors = new ArrayList<CellMaster>();
+    private ArrayList<CellMaster> neighbors = new ArrayList<CellMaster>(); // Masters touching our border
 
-    private Player owner = null;
+    private Player owner = null; // Player controlling us
 
-    private Level level;
+    private Level level; // Level
 
-    private boolean removed = false;
+    private boolean removed = false; // Are we removed from level
 
-    private static Random random = Util.getRandom();
+    private static Random random = Util.getRandom(); // Random
 
     public CellMaster(Level level) {
         // Calling this constructor means that field is not generated and we have to add cells ourselves
@@ -68,6 +68,7 @@ public class CellMaster implements Updatable {
 
     public void generate() {
         for (Cell cell : borderCells) {
+            // Determining where to try putting new cell
             int x = cell.getX();
             int y = cell.getY();
             switch (random.nextInt(4)) {

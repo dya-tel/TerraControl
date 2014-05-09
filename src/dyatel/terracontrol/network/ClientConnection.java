@@ -33,6 +33,7 @@ public class ClientConnection extends Connection {
 
         this.address = InetAddress.getByName(address);
         this.port = port;
+        window = client;
 
         level = client.getLevel();
 

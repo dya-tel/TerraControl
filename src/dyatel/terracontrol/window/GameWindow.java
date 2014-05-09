@@ -128,6 +128,8 @@ public abstract class GameWindow extends Canvas implements Runnable {
         double delta = 0;
         int updates = 0, frames = 0;
 
+        boolean needRender = false;
+
         while (running) {
             currentNanoTime = System.nanoTime();
             delta += (currentNanoTime - lastNanoTime) / 1000000000.0 * ups;
@@ -138,11 +140,13 @@ public abstract class GameWindow extends Canvas implements Runnable {
                     update();
                     updates++;
                     delta--;
+                    needRender = true;
                 }
 
-                if (!noGUI) {
+                if (!noGUI && needRender) {
                     render();
                     frames++;
+                    needRender = false;
                 }
             } catch (Exception e) {
                 ErrorLogger.add(e);

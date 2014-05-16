@@ -1,4 +1,4 @@
-package dyatel.terracontrol;
+package dyatel.terracontrol.window;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

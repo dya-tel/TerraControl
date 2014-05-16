@@ -1,6 +1,6 @@
 package dyatel.terracontrol.level;
 
-import dyatel.terracontrol.Screen;
+import dyatel.terracontrol.window.Screen;
 
 public class Cell {
 

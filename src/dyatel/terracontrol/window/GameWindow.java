@@ -1,6 +1,5 @@
 package dyatel.terracontrol.window;
 
-import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.input.Keyboard;
 import dyatel.terracontrol.input.Mouse;
 import dyatel.terracontrol.level.BasicLevel;

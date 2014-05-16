@@ -1,12 +1,12 @@
 package dyatel.terracontrol.level;
 
-import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.input.Keyboard;
 import dyatel.terracontrol.input.Mouse;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.window.GameWindow;
+import dyatel.terracontrol.window.Screen;
 
 import java.util.ArrayList;
 

@@ -1,10 +1,10 @@
 package dyatel.terracontrol.level;
 
-import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.window.GameWindow;
+import dyatel.terracontrol.window.Screen;
 
 import java.util.ArrayList;
 

@@ -1,6 +1,5 @@
 package dyatel.terracontrol.window;
 
-import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.level.ServerLevel;
 import dyatel.terracontrol.network.ServerConnection;
 import dyatel.terracontrol.util.DataArray;

@@ -1,6 +1,5 @@
 package dyatel.terracontrol.level;
 
-import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.level.generation.GeneratableLevel;
 import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.network.Player;
@@ -8,6 +7,7 @@ import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Util;
 import dyatel.terracontrol.window.GameWindow;
+import dyatel.terracontrol.window.Screen;
 
 import java.util.Random;
 

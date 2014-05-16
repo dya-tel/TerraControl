@@ -1,12 +1,12 @@
 package dyatel.terracontrol.level;
 
-import dyatel.terracontrol.Screen;
 import dyatel.terracontrol.level.generation.GeneratableLevel;
 import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.network.ServerConnection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.window.GameWindow;
+import dyatel.terracontrol.window.Screen;
 
 public class ServerLevel extends BasicLevel implements GeneratableLevel {
 

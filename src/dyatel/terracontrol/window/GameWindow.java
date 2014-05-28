@@ -151,6 +151,15 @@ public abstract class GameWindow extends Canvas implements Runnable {
                 ErrorLogger.add(e);
             }
 
+            int freeTime = (int) ((1000000000d / ups - (System.nanoTime() - lastNanoTime)) / 1000000);
+            if (freeTime > 0) {
+                try {
+                    Thread.sleep(freeTime);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
             if (System.currentTimeMillis() - timer >= 1000) {
                 timer = System.currentTimeMillis();
                 if (!noGUI) frame.setTitle("TerraControl" + title + ": " + updates + " ups, " + frames + " fps");

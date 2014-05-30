@@ -44,9 +44,6 @@ public class SinglePlayer extends GameWindow {
         level.render(screen);
         screen.draw(g);
 
-        g.setColor(Color.WHITE);
-        g.fillRect(0, height - statusBarHeight, width, statusBarHeight);
-
         g.setColor(Color.BLACK);
         g.setFont(font);
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);

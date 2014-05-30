@@ -128,7 +128,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         return cells;
     }
 
-    public void render(Screen screen) {
+    public void preRender(Screen screen) {
         screen.setOffset(xOff, yOff);
 
         // Render
@@ -144,4 +144,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         }
     }
 
+    public void postRender(Screen screen) {
+
+    }
 }

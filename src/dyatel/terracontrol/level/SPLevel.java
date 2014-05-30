@@ -190,7 +190,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
         return cells;
     }
 
-    public void render(Screen screen) {
+    public void preRender(Screen screen) {
         screen.setOffset(xOff, yOff);
 
         // Render
@@ -214,6 +214,10 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
                 cells[x + y * width].render(screen, color); // Rendering
             }
         }
+    }
+
+    public void postRender(Screen screen) {
+
     }
 
 }

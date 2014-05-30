@@ -117,7 +117,7 @@ public class ClientLevel extends BasicLevel {
         needToMakeATurn = true;
     }
 
-    public void render(Screen screen) {
+    public void preRender(Screen screen) {
         if (!initialized) return;
         screen.setOffset(xOff, yOff);
 
@@ -144,4 +144,7 @@ public class ClientLevel extends BasicLevel {
         }
     }
 
+    public void postRender(Screen screen) {
+
+    }
 }

@@ -45,9 +45,6 @@ public class Client extends GameWindow {
         level.render(screen);
         screen.draw(g);
 
-        g.setColor(Color.WHITE);
-        g.fillRect(0, height - statusBarHeight, width, statusBarHeight);
-
         g.setColor(Color.BLACK);
         g.setFont(font);
         String tx = "Tx: " + connection.getTransmitted();

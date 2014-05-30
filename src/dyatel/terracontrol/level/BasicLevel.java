@@ -105,7 +105,18 @@ public abstract class BasicLevel implements Level {
     // One-side update, specific for client and server
     protected abstract void sideUpdate();
 
-    public abstract void render(Screen screen);
+    protected abstract void preRender(Screen screen);
+
+    public final void render(Screen screen) {
+        preRender(screen);
+
+        // Interface background
+        screen.render(0, window.getFieldHeight(), window.getWidth(), window.getHeight(), 0xffffff,false);
+
+        postRender(screen);
+    }
+
+    public abstract void postRender(Screen screen);
 
     public boolean canSetCell(int x, int y) {
         // If this coordinates belong to level and there is no cell, returning true

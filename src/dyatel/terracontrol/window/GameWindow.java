@@ -173,6 +173,14 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
     protected abstract void render();
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
     public int getFieldHeight() {
         return height - statusBarHeight;
     }

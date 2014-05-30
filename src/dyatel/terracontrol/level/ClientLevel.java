@@ -87,7 +87,7 @@ public class ClientLevel extends BasicLevel {
         }
 
         // Calculating number of cells that we can capture
-        int availableCells = willCapture(players[playerID], currentColorID);
+        int availableCells = players[playerID].canCapture(currentColorID);
         window.statusBar[4] = String.valueOf(players[playerID].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
 
         // Making a turn if needed

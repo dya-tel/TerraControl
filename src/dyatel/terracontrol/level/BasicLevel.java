@@ -179,19 +179,6 @@ public abstract class BasicLevel implements Level {
         return -1;
     }
 
-    public int willCapture(Player player, int colorID) {
-        int availableCells = 0;
-        if (colorID != -1) {
-            ArrayList<CellMaster> neighbors = player.getMaster().getNeighbors();
-            for (CellMaster master : neighbors) {
-                if (master.getColorID() == colorID && master.getOwner() == null) {
-                    availableCells += master.getCells().size();
-                }
-            }
-        }
-        return availableCells;
-    }
-
     public void changeXOff(int dx) {
         // Changing offset without going out of bounds
         xOff += dx;

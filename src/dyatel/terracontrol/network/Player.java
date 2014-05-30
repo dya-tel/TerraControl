@@ -4,6 +4,7 @@ import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.level.Level;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 
 public class Player {
 
@@ -78,6 +79,19 @@ public class Player {
 
     public int getLastTurn() {
         return lastTurn;
+    }
+
+    public int canCapture(int colorID) {
+        int availableCells = 0;
+        if (colorID != -1) {
+            ArrayList<CellMaster> neighbors = master.getNeighbors();
+            for (CellMaster neighbor : neighbors) {
+                if (neighbor.getColorID() == colorID && neighbor.getOwner() == null) {
+                    availableCells += neighbor.getCells().size();
+                }
+            }
+        }
+        return availableCells;
     }
 
     public boolean equals(InetAddress address, int port) {

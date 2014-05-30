@@ -103,7 +103,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
             int max = -1;
             int turn = -1;
             for (int i = 0; i < colors.length; i++) {
-                int willAdd = willCapture(players[currentPlayer], i);
+                int willAdd = players[currentPlayer].canCapture(i);
                 if (willAdd > max) {
                     max = willAdd;
                     turn = i;
@@ -128,7 +128,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
                 }
             } else if (state == 2) {
                 // Making turns
-                if (currentPlayer == 0 && currentColorID != -1 && willCapture(players[0], currentColorID) > 0) {
+                if (currentPlayer == 0 && currentColorID != -1 && players[0].canCapture(currentColorID) > 0) {
                     players[0].addTurn(currentColorID);
                     currentPlayer = nextPlayer();
                 }
@@ -137,7 +137,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
 
         if (state == 2) {
             // Calculating number of cells that we can capture
-            int availableCells = willCapture(players[0], currentColorID);
+            int availableCells = players[0].canCapture(currentColorID);
             window.statusBar[4] = String.valueOf(players[0].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
         }
 

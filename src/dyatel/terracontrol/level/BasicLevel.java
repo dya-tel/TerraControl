@@ -108,12 +108,12 @@ public abstract class BasicLevel implements Level {
     protected abstract void preRender(Screen screen);
 
     public final void render(Screen screen) {
-        preRender(screen);
+        if (initialized) preRender(screen);
 
         // Interface background
         screen.render(0, window.getFieldHeight(), window.getWidth(), window.getHeight(), 0xffffff,false);
 
-        postRender(screen);
+        if (initialized) postRender(screen);
     }
 
     public abstract void postRender(Screen screen);

@@ -50,13 +50,10 @@ public class SinglePlayer extends GameWindow {
         FontMetrics fm = image.getGraphics().getFontMetrics(font);
         g.drawString(statusBar[0], 2, height - 28);
         g.drawString(statusBar[1], (width - fm.stringWidth(statusBar[1])) / 2, height - 28);
-        g.drawString(statusBar[2], width - fm.stringWidth(statusBar[2]) - 20, height - 28);
+        g.drawString(statusBar[2], width - fm.stringWidth(statusBar[2]) - 2, height - 28);
         g.drawString(statusBar[3], 2, height - 8);
         g.drawString(statusBar[4], (width - fm.stringWidth(statusBar[4])) / 2, height - 8);
         g.drawString(statusBar[5], width - fm.stringWidth(statusBar[5]) - 2, height - 8);
-
-        g.setColor(new Color(((SPLevel) level).currentColor));
-        g.fillRect(width - 18, height - 44, 16, 16);
 
         g.dispose();
         bs.show();

@@ -1,5 +1,8 @@
 package dyatel.terracontrol.level;
 
+import dyatel.terracontrol.level.button.Button;
+import dyatel.terracontrol.level.button.ButtonController;
+import dyatel.terracontrol.level.button.TurnButton;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.DataArray;
@@ -8,15 +11,15 @@ import dyatel.terracontrol.window.Screen;
 
 import java.util.ArrayList;
 
-public class ClientLevel extends BasicLevel {
+public class ClientLevel extends BasicLevel implements TurnableLevel {
 
     // state: -1 - waiting, 0 - playing, 1 - won, 2 - lost, 3 - draw
 
     protected int playerID; // Client`s player ID
 
-    protected Cell currentCell; // Cell player is pointing on
-    protected int currentColorID; // Color ID of currentCell
-    public int currentColor; // Color of currentCell
+    private ButtonController buttons; // Buttons for making turns
+    private int currentColor; // Chosen color
+    private int currentColorID; // Chosen color array index
 
     protected boolean needToMakeATurn = false; // True if it is client`s turn
 
@@ -48,26 +51,28 @@ public class ClientLevel extends BasicLevel {
             colors[i] = data.getInteger("color" + i);
         }
 
+        // Adding buttons
+        buttons = new ButtonController();
+        for (int i = 0; i < colors.length; i++) {
+            int buttonSpacing = Button.getSize() + (Button.getHoveringSize() - Button.getSize() + 1) * 2;
+            int offset = (window.getHeight() - window.getFieldHeight()) / 2;
+            new TurnButton(offset + buttonSpacing * i, window.getFieldHeight() + offset, colors[i], buttons, this);
+        }
+
         initialized = true;
     }
 
     protected void sideUpdate() {
-        // Getting cell and color under mouse
-        currentCell = getCell(mouseLX, mouseLY);
-        if (currentCell != null) {
-            currentColorID = currentCell.getMaster().getColorID();
-            currentColor = colors[currentCell.getMaster().getColorID()];
-        } else {
-            currentColorID = -1;
-            currentColor = 0;
-        }
-        window.statusBar[2] = mouseLX + " " + mouseLY;
+        // Resetting chosen color
+        currentColor = 0;
+        currentColorID = -1;
+        buttons.update(mouseX, mouseY); // Updating buttons
 
         // Changing zoom by keyboard
         if (keys[7]) changeZoom(1);
         if (keys[8]) changeZoom(-1);
 
-        // Printing current state
+        // Printing current state and mouse position
         switch (state) {
             case -1:
                 window.statusBar[1] = "Waiting...";
@@ -85,6 +90,7 @@ public class ClientLevel extends BasicLevel {
                 window.statusBar[1] = "Draw.";
                 break;
         }
+        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Calculating number of cells that we can capture
         int availableCells = players[playerID].canCapture(currentColorID);
@@ -92,7 +98,7 @@ public class ClientLevel extends BasicLevel {
 
         // Making a turn if needed
         if (needToMakeATurn && state == 0 && mouse.isClicked() && availableCells > 0) {
-            players[playerID].addTurn(getColorID(currentColor));
+            players[playerID].addTurn(currentColorID);
             needToMakeATurn = false;
         }
     }
@@ -117,8 +123,16 @@ public class ClientLevel extends BasicLevel {
         needToMakeATurn = true;
     }
 
+    public boolean isTurnAvailable(int color) {
+        return players[playerID] != null && players[playerID].canCapture(getColorID(color)) > 0;
+    }
+
+    public void highlightTurn(int color) {
+        currentColor = color;
+        currentColorID = getColorID(color);
+    }
+
     public void preRender(Screen screen) {
-        if (!initialized) return;
         screen.setOffset(xOff, yOff);
 
         // Render
@@ -133,7 +147,7 @@ public class ClientLevel extends BasicLevel {
 
                 // Calculating color
                 int color = Color.subtract(colors[master.getColorID()], 0xaa, 0xaa, 0xaa);
-                if (currentCell == null) {
+                if (currentColorID == -1) {
                     color = colors[master.getColorID()];
                 } else if (master.getOwner() == players[playerID] || (master.getOwner() == null && players[playerID].getMaster().isNeighbor(master) && master.getColorID() == currentColorID)) {
                     color = currentColor;
@@ -145,6 +159,6 @@ public class ClientLevel extends BasicLevel {
     }
 
     public void postRender(Screen screen) {
-
+        buttons.render(screen);
     }
 }

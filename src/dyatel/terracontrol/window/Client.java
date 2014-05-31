@@ -53,13 +53,10 @@ public class Client extends GameWindow {
         FontMetrics fm = image.getGraphics().getFontMetrics(font);
         g.drawString(statusBar[0], 2, height - 28);
         g.drawString(statusBar[1], (width - fm.stringWidth(statusBar[1])) / 2, height - 28);
-        g.drawString(statusBar[2], width - fm.stringWidth(statusBar[2]) - 20, height - 28);
+        g.drawString(statusBar[2], width - fm.stringWidth(statusBar[2]) - 2, height - 28);
         g.drawString(tx, 2, height - 8);
         g.drawString(statusBar[4], (width - fm.stringWidth(statusBar[4])) / 2, height - 8);
         g.drawString(rx, width - fm.stringWidth(rx) - 2, height - 8);
-
-        g.setColor(new Color(((ClientLevel) level).currentColor));
-        g.fillRect(width - 18, height - 44, 16, 16);
 
         g.dispose();
         bs.show();

@@ -1,5 +1,8 @@
 package dyatel.terracontrol.level;
 
+import dyatel.terracontrol.level.button.Button;
+import dyatel.terracontrol.level.button.ButtonController;
+import dyatel.terracontrol.level.button.TurnButton;
 import dyatel.terracontrol.level.generation.GeneratableLevel;
 import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.network.Player;
@@ -11,7 +14,7 @@ import dyatel.terracontrol.window.Screen;
 
 import java.util.Random;
 
-public class SPLevel extends BasicLevel implements GeneratableLevel {
+public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLevel {
 
     // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - won, 4 - lost, 5 - draw
 
@@ -24,9 +27,9 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
 
     private boolean endAt50; // Game will end when someone captures more than a half of field if true
 
-    private Cell currentCell; // Cell player is pointing on
-    private int currentColorID; // Its place in array
-    public int currentColor; // Its color
+    private ButtonController buttons; // Buttons for making turns
+    private int currentColor; // Chosen color
+    private int currentColorID; // Chosen color array index
 
     public SPLevel(DataArray data, GameWindow window) {
         super(data.getInteger("cellSize"), window);
@@ -51,24 +54,26 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
         players = new Player[data.getInteger("players")];
         endAt50 = data.getBoolean("endAt50");
 
+        // Adding buttons
+        buttons = new ButtonController();
+        for (int i = 0; i < colors.length; i++) {
+            int buttonSpacing = Button.getSize() + (Button.getHoveringSize() - Button.getSize() + 1) * 2;
+            int offset = (window.getHeight() - window.getFieldHeight()) / 2;
+            new TurnButton(offset + buttonSpacing * i, window.getFieldHeight() + offset, colors[i], buttons, this);
+        }
+
         state = 0;
 
         initialized = true;
     }
 
     protected void sideUpdate() {
-        // Getting cell and color under mouse
-        currentCell = getCell(mouseLX, mouseLY);
-        if (currentCell != null) {
-            currentColorID = currentCell.getMaster().getColorID();
-            currentColor = colors[currentCell.getMaster().getColorID()];
-        } else {
-            currentColorID = -1;
-            currentColor = 0;
-        }
-        window.statusBar[2] = mouseLX + " " + mouseLY;
+        // Resetting chosen color
+        currentColor = 0;
+        currentColorID = -1;
+        buttons.update(mouseX, mouseY); // Updating buttons
 
-        // Printing current state
+        // Printing current state and mouse position
         switch (state) {
             case -1:
                 window.statusBar[1] = "Waiting...";
@@ -90,6 +95,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
                 window.statusBar[1] = "Draw.";
                 break;
         }
+        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Level generation
         if (state == 0) {
@@ -139,18 +145,16 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
             // Calculating number of cells that we can capture
             int availableCells = players[0].canCapture(currentColorID);
             window.statusBar[4] = String.valueOf(players[0].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
-        }
 
-        if (state != 2) return;
-
-        // Checking if level is captured
-        int cCells = 0; // Captured cells
-        for (Player player : players) {
-            int cells = player.getMaster().getCells().size();
-            if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
-                debug.println("Captured level!");
-                findWinner();
-                return;
+            // Checking if level is captured
+            int cCells = 0; // Captured cells
+            for (Player player : players) {
+                int cells = player.getMaster().getCells().size();
+                if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
+                    debug.println("Captured level!");
+                    findWinner();
+                    break;
+                }
             }
         }
     }
@@ -190,6 +194,15 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
         return cells;
     }
 
+    public boolean isTurnAvailable(int color) {
+        return players[0] != null && players[0].canCapture(getColorID(color)) > 0;
+    }
+
+    public void highlightTurn(int color) {
+        currentColor = color;
+        currentColorID = getColorID(color);
+    }
+
     public void preRender(Screen screen) {
         screen.setOffset(xOff, yOff);
 
@@ -205,7 +218,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
 
                 // Calculating color
                 int color = Color.subtract(colors[master.getColorID()], 0xaa, 0xaa, 0xaa);
-                if (currentCell == null || state != 2) {
+                if (currentColorID == -1 || state != 2) {
                     color = colors[master.getColorID()];
                 } else if (players[0] != null && (master.getOwner() == players[0] || (master.getOwner() == null && players[0].getMaster().isNeighbor(master) && master.getColorID() == currentColorID))) {
                     color = currentColor;
@@ -217,7 +230,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel {
     }
 
     public void postRender(Screen screen) {
-
+        buttons.render(screen);
     }
 
 }

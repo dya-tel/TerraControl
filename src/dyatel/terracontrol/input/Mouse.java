@@ -44,9 +44,7 @@ public class Mouse implements MouseListener, MouseMotionListener, MouseWheelList
     }
 
     public void mouseWheelMoved(MouseWheelEvent e) {
-        if (level != null) {
-            level.changeZoom(e.getWheelRotation() * -1);
-        }
+        if (level != null) level.changeZoom(e.getWheelRotation() * -1);
     }
 
     public int getX() {

@@ -50,7 +50,7 @@ public abstract class BasicLevel implements Level {
         this.window = window;
         debug = window.getDebug();
 
-        // Receiving and initializing input
+        // Getting and initializing input
         keyboard = window.getKeyboard();
         mouse = window.getMouse();
         mouse.setLevel(this);
@@ -67,7 +67,7 @@ public abstract class BasicLevel implements Level {
         if (keyDelay > -1) keyDelay--;
         keys = keyboard.getKeys();
 
-        // Updating mouse coordinates
+        // Updating mouse coordinates and printing them
         mouseX = mouse.getX();
         mouseY = mouse.getY();
         if (mouseX > -1 && mouseY > -1 && mouseY < window.getFieldHeight()) {
@@ -78,12 +78,17 @@ public abstract class BasicLevel implements Level {
             mouseLX = -1;
             mouseLY = -1;
         }
+        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Updating offset if needed
-        if (keys[10]) changeXOff(-scrollRate);
-        if (keys[11]) changeYOff(-scrollRate);
-        if (keys[12]) changeXOff(scrollRate);
-        if (keys[13]) changeYOff(scrollRate);
+        if (keys[Keyboard.KEY_LEFT]) changeXOff(-scrollRate);
+        if (keys[Keyboard.KEY_UP]) changeYOff(-scrollRate);
+        if (keys[Keyboard.KEY_RIGHT]) changeXOff(scrollRate);
+        if (keys[Keyboard.KEY_DOWN]) changeYOff(scrollRate);
+
+        // Changing zoom by keyboard
+        if (keys[Keyboard.KEY_PLUS]) changeZoom(1);
+        if (keys[Keyboard.KEY_MINUS]) changeZoom(-1);
 
         if (!initialized) return;
 
@@ -111,7 +116,7 @@ public abstract class BasicLevel implements Level {
         if (initialized) preRender(screen);
 
         // Interface background
-        screen.render(0, window.getFieldHeight(), window.getWidth(), window.getHeight(), 0xffffff,false);
+        screen.render(0, window.getFieldHeight(), window.getWidth(), window.getHeight(), 0xffffff, false);
 
         if (initialized) postRender(screen);
     }

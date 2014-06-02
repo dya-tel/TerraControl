@@ -11,8 +11,8 @@ import java.awt.image.BufferedImage;
 
 public class SinglePlayer extends GameWindow {
 
-    public SinglePlayer(int width, int height, DataArray data, GameWindow bind) {
-        super(width, height, "", data, Debug.spDebug, bind);
+    public SinglePlayer(int width, int height, DataArray data) {
+        super(width, height, "", data, Debug.spDebug);
     }
 
     protected void start(DataArray data) throws Exception {

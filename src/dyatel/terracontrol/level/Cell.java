@@ -16,8 +16,8 @@ public class Cell {
 
         this.master = master;
 
-        level = master.getLevel();
-        level.setCell(this); // Adding us on level
+        level = master.getLevel(); // Getting level
+        level.setCell(this); // Adding us to level
 
         master.addCell(this); // Adding us to master`s list
     }
@@ -35,7 +35,7 @@ public class Cell {
             if (level.getMaster(x, y + 1) == master) height++;
         }
 
-        screen.render(xp, yp, xp + width, yp + height, color, true);
+        screen.render(xp, yp, xp + width, yp + height, color, true); // Rendering
     }
 
     public int getX() {

@@ -22,7 +22,21 @@ public abstract class Generator {
         level.getDebug().println("Using \"" + getName() + "\" generator");
     }
 
-    public abstract void generate(Cell[] cells);
+    public final void generate(Cell[] cells) {
+        if (genStart == -1) genStart = System.currentTimeMillis();
+
+        // Checking if level is generated
+        if (isGenerated()) {
+            level.getDebug().println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
+            onLevelGenerated();
+            return;
+        }
+
+        gen(cells);
+    }
+
+    // Generation algorithm
+    public abstract void gen(Cell[] cells);
 
     protected void onLevelGenerated() {
         ArrayList<CellMaster> masters = level.getMasters();

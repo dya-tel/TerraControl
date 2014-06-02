@@ -3,6 +3,7 @@ package dyatel.terracontrol.window;
 import dyatel.terracontrol.input.Keyboard;
 import dyatel.terracontrol.input.Mouse;
 import dyatel.terracontrol.level.BasicLevel;
+import dyatel.terracontrol.level.Level;
 import dyatel.terracontrol.network.Connection;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
@@ -17,11 +18,8 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
     protected Thread thread; // Main game thread
     protected boolean running; // If false, the game will close
-    protected boolean noGUI; // If true, there will be no window
 
     protected Debug debug; // Output
-
-    protected GameWindow bind; // GameWindow to close on exit
 
     protected JFrame frame; // Actual window
     protected int width, height; // Sizes of window
@@ -30,7 +28,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
     protected Screen screen; // Renderer
     protected Keyboard keyboard; // Keyboard input manager
     protected Mouse mouse; // Mouse input manager
-    protected BasicLevel level; // Level
+    protected Level level; // Level
     protected Connection connection; // Connection manager
 
     public String[] statusBar = {"", "", "", "", "", ""}; // Output on bottom panel
@@ -39,15 +37,12 @@ public abstract class GameWindow extends Canvas implements Runnable {
     protected static final int statusBarHeight = 47; // Vertical size of bottom panel
     protected static final Font font = new Font("Arial", Font.PLAIN, 14); // Font we are using to print text
 
-    protected GameWindow(int width, int height, String title, DataArray data, Debug debug, GameWindow bind) {
+    protected GameWindow(int width, int height, String title, DataArray data, Debug debug) {
         // Saving all data
         this.width = width;
         this.height = height;
         this.title = title;
         this.debug = debug;
-        this.bind = bind; // Binding other window to us
-        if (bind != null) bind.bind = this; // Binding us to other window
-        noGUI = data.getBoolean("noGUI");
 
         // Creating input managers
         keyboard = new Keyboard();
@@ -58,42 +53,39 @@ public abstract class GameWindow extends Canvas implements Runnable {
             start(data);
         } catch (Exception e) {
             // Saying that we were not able to start
-            debug.println("Stopping server!");
+            debug.println("Stopping " + title + "!");
             ErrorLogger.add(e);
 
             // Stopping all we are running
             running = false;
             if (connection != null) connection.stop();
-            if (bind != null) bind.stop();
 
             return;
         }
 
-        if (!noGUI) {
-            // Setting canvas size
-            setSize(width, height);
+        // Setting canvas size
+        setSize(width, height);
 
-            // Creating window
-            frame = new JFrame("TerraControl" + title);
-            frame.setResizable(false);
-            frame.add(this);
-            frame.pack();
-            frame.setLocationRelativeTo(null);
+        // Creating window
+        frame = new JFrame("TerraControl" + title);
+        frame.setResizable(false);
+        frame.add(this);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
 
-            // Adding all kind of listeners
-            frame.addWindowListener(new WindowAdapter() {
-                public void windowClosing(WindowEvent e) {
-                    exit();
-                }
-            });
-            addKeyListener(keyboard);
-            addMouseListener(mouse);
-            addMouseMotionListener(mouse);
-            addMouseWheelListener(mouse);
+        // Adding all kind of listeners
+        frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                stop();
+            }
+        });
+        addKeyListener(keyboard);
+        addMouseListener(mouse);
+        addMouseMotionListener(mouse);
+        addMouseWheelListener(mouse);
 
-            // Showing window
-            frame.setVisible(true);
-        }
+        // Showing window
+        frame.setVisible(true);
 
         // Running main game loop
         thread.start();
@@ -112,12 +104,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
             ErrorLogger.add(e);
         }
 
-        if (!noGUI) frame.setVisible(false);
-    }
-
-    public final void exit() {
-        if (bind != null) bind.stop();
-        stop();
+        frame.setVisible(false);
     }
 
     public final void run() {
@@ -142,7 +129,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
                     needRender = true;
                 }
 
-                if (!noGUI && needRender) {
+                if (needRender) {
                     render();
                     frames++;
                     needRender = false;
@@ -162,7 +149,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
             if (System.currentTimeMillis() - timer >= 1000) {
                 timer = System.currentTimeMillis();
-                if (!noGUI) frame.setTitle("TerraControl" + title + ": " + updates + " ups, " + frames + " fps");
+                frame.setTitle("TerraControl" + title + ": " + updates + " ups, " + frames + " fps");
                 updates = 0;
                 frames = 0;
             }

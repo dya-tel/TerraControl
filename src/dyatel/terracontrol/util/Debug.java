@@ -2,10 +2,10 @@ package dyatel.terracontrol.util;
 
 public class Debug {
 
-    public static Debug launcherDebug = new Debug("[Launcher]");
-    public static Debug spDebug = new Debug("[TerraControl]");
-    public static Debug clientDebug = new Debug("[Client]");
-    public static Debug serverDebug = new Debug("[Server]");
+    public static final Debug launcherDebug = new Debug("[Launcher]");
+    public static final Debug spDebug = new Debug("[TerraControl]");
+    public static final Debug clientDebug = new Debug("[Client]");
+    public static final Debug serverDebug = new Debug("[Server]");
 
     private String prefix;
 

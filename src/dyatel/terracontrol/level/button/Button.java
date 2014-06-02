@@ -7,12 +7,12 @@ public abstract class Button {
 
     protected int x, y; // Our coordinates
 
-    protected static final int size = 16, disabledSize = 8, hoveringSize = 20; // Side length in pixels
+    protected static final int size = 16, disabledSize = 12, hoveringSize = 20; // Side length in pixels
 
     protected int color; // Cell color
 
-    protected boolean active = true;
-    protected boolean hovering = false;
+    protected boolean active = true; // Is button enabled
+    protected boolean hovering = false; // Is mouse placed on button
 
     public Button(int x, int y, int color, ButtonController controller) {
         this.x = x;
@@ -20,19 +20,20 @@ public abstract class Button {
 
         this.color = color;
 
-        controller.add(this);
+        controller.add(this); // Adding us to controller
     }
 
     protected abstract void update();
 
     public void render(Screen screen) {
-        int s;
+        int s; // Button size
         if (!active) {
             s = disabledSize;
         } else {
             s = hovering ? hoveringSize : size;
         }
-        int c = active ? color : Color.subtract(color, 0xaa, 0xaa, 0xaa);
+        int c = active ? color : Color.subtract(color, 0xaa, 0xaa, 0xaa); // Button color
+
         screen.render(x - s / 2, y - s / 2, x + s / 2, y + s / 2, c, false); // Rendering
     }
 

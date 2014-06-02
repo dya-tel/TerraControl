@@ -12,7 +12,7 @@ import java.util.Date;
 
 public class ErrorLogger {
 
-    private static boolean canAdd = true; // We can add more exceptions if true
+    private static boolean canAdd = true; // Can we add exception to the list
 
     private static ArrayList<Exception> errors = new ArrayList<Exception>(); // List of all exceptions
 

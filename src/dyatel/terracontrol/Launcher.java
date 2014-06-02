@@ -109,7 +109,6 @@ public class Launcher extends JFrame {
                     data.fillInteger("players", playersField.getText());
                     data.fillString("generatorType", (String) generatorTypeBox.getSelectedItem());
                     data.fillBoolean("endAt50", endAt50Check.isSelected());
-                    data.fillBoolean("noGUI", false);
 
                     // Parsing colors
                     String[] colorsR = colorsField.getText().split(" ");
@@ -118,7 +117,7 @@ public class Launcher extends JFrame {
                         data.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
                     }
 
-                    new SinglePlayer(width, height, data, null);
+                    new SinglePlayer(width, height, data);
                 } catch (Exception ex) {
                     debug.println("Error: wrong input!");
                 }
@@ -140,9 +139,8 @@ public class Launcher extends JFrame {
                     data.fillString("address", addressField.getText());
                     data.fillInteger("port", portField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
-                    data.fillBoolean("noGUI", false);
 
-                    new Client(width, height, data, null);
+                    new Client(width, height, data);
                 } catch (Exception ex) {
                     debug.println("Error: wrong input!");
                 }
@@ -166,7 +164,6 @@ public class Launcher extends JFrame {
                     data.fillInteger("players", playersField.getText());
                     data.fillString("generatorType", (String) generatorTypeBox.getSelectedItem());
                     data.fillBoolean("endAt50", endAt50Check.isSelected());
-                    data.fillBoolean("noGUI", false);
 
                     String[] colorsR = colorsField.getText().split(" ");
                     data.fillInteger("colors", colorsR.length);
@@ -174,7 +171,7 @@ public class Launcher extends JFrame {
                         data.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
                     }
 
-                    new Server(width, height, data, null);
+                    new Server(width, height, data);
                 } catch (Exception ex) {
                     debug.println("Error: wrong input!");
                 }

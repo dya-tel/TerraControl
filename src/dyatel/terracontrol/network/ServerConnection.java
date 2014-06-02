@@ -14,7 +14,7 @@ public class ServerConnection extends Connection {
 
     private ServerLevel level; // Our level
 
-    private Player[] players; // Array of level, copy of ServerLevel players
+    private Player[] players; // Array of players, copy of ServerLevel players
     private int connected = 0; // How many players are connected
     private int ready = 0; // How many players are ready to play
 
@@ -94,9 +94,9 @@ public class ServerConnection extends Connection {
             send(CODE_CELLS, data, address, port);
         } else if (code == CODE_READY) {
             if (player != -1 && !players[player].isReady()) {
-                players[ready++].ready();
+                players[player].ready();
 
-                if (ready == players.length) {
+                if (++ready == players.length) {
                     level.setState(3);
                     sendEveryoneExcluding(CODE_STATE, "0", -1); // Sending to everyone
                     startTurnManager();

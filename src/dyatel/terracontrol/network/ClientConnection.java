@@ -161,10 +161,8 @@ public class ClientConnection extends Connection {
     public void receiveLevel() {
         levelReceiver = new Thread("LevelReceiver") {
             public void run() {
-                int masters = level.getMasters().size();
-                int cells = level.getWidth() * level.getHeight();
-
                 // Requesting masters
+                int masters = level.getMasters().size();
                 while (receivedMasters < masters && running) {
                     try {
                         send(CODE_MASTERS, String.valueOf(receivedMasters));
@@ -175,6 +173,7 @@ public class ClientConnection extends Connection {
                 }
 
                 // Requesting cells
+                int cells = level.getWidth() * level.getHeight();
                 while (receivedCells < cells && running) {
                     try {
                         send(CODE_CELLS, String.valueOf(receivedCells));

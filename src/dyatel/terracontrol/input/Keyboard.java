@@ -5,40 +5,38 @@ import java.awt.event.KeyEvent;
 
 public class Keyboard extends KeyAdapter {
 
-    // reset 0, colors 1-6, + 7, - 8, left 10, up 11, right 12, down 13
+    public static final int KEY_LEFT = 0;
+    public static final int KEY_UP = 1;
+    public static final int KEY_RIGHT = 2;
+    public static final int KEY_DOWN = 3;
+    public static final int KEY_PLUS = 4;
+    public static final int KEY_MINUS = 5;
+
     private boolean[] keys;
 
     public Keyboard() {
-        keys = new boolean[20];
+        keys = new boolean[6];
     }
 
     private void changeState(int key, boolean state) {
-        if (key >= KeyEvent.VK_1 && key <= KeyEvent.VK_6) {
-            keys[1 + key - KeyEvent.VK_1] = state;
-            return;
-        }
-
         switch (key) {
-            case KeyEvent.VK_SPACE:
-                keys[0] = state;
-                break;
-            case KeyEvent.VK_EQUALS:
-                keys[7] = state;
-                break;
-            case KeyEvent.VK_MINUS:
-                keys[8] = state;
-                break;
             case KeyEvent.VK_LEFT:
-                keys[10] = state;
+                keys[KEY_LEFT] = state;
                 break;
             case KeyEvent.VK_UP:
-                keys[11] = state;
+                keys[KEY_UP] = state;
                 break;
             case KeyEvent.VK_RIGHT:
-                keys[12] = state;
+                keys[KEY_RIGHT] = state;
                 break;
             case KeyEvent.VK_DOWN:
-                keys[13] = state;
+                keys[KEY_DOWN] = state;
+                break;
+            case KeyEvent.VK_EQUALS:
+                keys[KEY_PLUS] = state;
+                break;
+            case KeyEvent.VK_MINUS:
+                keys[KEY_MINUS] = state;
                 break;
         }
     }

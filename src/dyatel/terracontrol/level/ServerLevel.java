@@ -54,14 +54,15 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         } else {
             window.statusBar[1] = "null";
         }
-        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Printing current state
         switch (state) {
             case -1:
                 window.statusBar[1] = "Waiting...";
                 break;
-            // case 0 is managed in level generation for now
+            case 0:
+                window.statusBar[1] = "Generated: " + generator.getGeneratedPercent() + "%";
+                break;
             case 1:
                 window.statusBar[1] = "Placing players: " + placedPlayers + "/" + players.length;
                 break;
@@ -83,10 +84,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         }
 
         // Level generation
-        if (state == 0) {
-            window.statusBar[1] = "Generated: " + generator.getGeneratedPercent() + "%";
-            generator.generate(cells);
-        }
+        if (state == 0) generator.generate(cells);
 
         // Placing players
         if (mouse.isClicked() && state == 1) {
@@ -101,17 +99,17 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
             }
         }
 
-        if (state != 3) return;
-
-        // Checking if level is captured
-        int cCells = 0; // Captured cells
-        for (Player player : players) {
-            int cells = player.getMaster().getCells().size();
-            if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
-                debug.println("Captured level!");
-                ((ServerConnection) window.getConnection()).gameOver();
-                state = 4;
-                return;
+        if (state == 3) {
+            // Checking if level is captured
+            int cCells = 0; // Captured cells
+            for (Player player : players) {
+                int cells = player.getMaster().getCells().size();
+                if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
+                    debug.println("Captured level!");
+                    ((ServerConnection) window.getConnection()).gameOver();
+                    state = 4;
+                    return;
+                }
             }
         }
     }

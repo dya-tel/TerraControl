@@ -1,8 +1,13 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.window.Screen;
 
 public interface Level {
+
+    public void update();
+
+    public void render(Screen screen);
 
     public boolean canSetCell(int x, int y);
 

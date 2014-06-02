@@ -16,7 +16,7 @@ import java.util.Random;
 
 public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLevel {
 
-    // -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - won, 4 - lost, 5 - draw
+    // state: -1 - no state, 0 - generating, 1 - placing players, 2 - playing, 3 - won, 4 - lost, 5 - draw
 
     private Random random = Util.getRandom(); // Random
 
@@ -73,12 +73,14 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
         currentColorID = -1;
         buttons.update(mouseX, mouseY); // Updating buttons
 
-        // Printing current state and mouse position
+        // Printing current state
         switch (state) {
             case -1:
                 window.statusBar[1] = "Waiting...";
                 break;
-            // case 0 is managed in level generation for now
+            case 0:
+                window.statusBar[1] = "Generated: " + generator.getGeneratedPercent() + "%";
+                break;
             case 1:
                 window.statusBar[1] = "Placing players: " + placedPlayers + "/" + players.length;
                 break;
@@ -95,30 +97,9 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
                 window.statusBar[1] = "Draw.";
                 break;
         }
-        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Level generation
-        if (state == 0) {
-            window.statusBar[1] = "Generated: " + generator.getGeneratedPercent() + "%";
-            generator.generate(cells);
-        }
-
-        // Making turns
-        if (state == 2 && currentPlayer != 0) {
-            // Choosing best available turn
-            int max = -1;
-            int turn = -1;
-            for (int i = 0; i < colors.length; i++) {
-                int willAdd = players[currentPlayer].canCapture(i);
-                if (willAdd > max) {
-                    max = willAdd;
-                    turn = i;
-                }
-            }
-            // Making turn
-            players[currentPlayer].addTurn(turn);
-            currentPlayer = nextPlayer();
-        }
+        if (state == 0) generator.generate(cells);
 
         // Managing mouse click
         if (mouse.isClicked()) {
@@ -142,6 +123,23 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
         }
 
         if (state == 2) {
+            // AI turn
+            if (currentPlayer != 0) {
+                // Choosing best available turn
+                int max = -1;
+                int turn = -1;
+                for (int i = 0; i < colors.length; i++) {
+                    int willAdd = players[currentPlayer].canCapture(i);
+                    if (willAdd > max) {
+                        max = willAdd;
+                        turn = i;
+                    }
+                }
+                // Making turn
+                players[currentPlayer].addTurn(turn);
+                currentPlayer = nextPlayer();
+            }
+
             // Calculating number of cells that we can capture
             int availableCells = players[0].canCapture(currentColorID);
             window.statusBar[4] = String.valueOf(players[0].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");

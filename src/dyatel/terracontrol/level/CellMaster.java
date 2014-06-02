@@ -18,7 +18,7 @@ public class CellMaster implements Updatable {
 
     private ArrayList<CellMaster> neighbors = new ArrayList<CellMaster>(); // Masters touching our border
 
-    private Player owner = null; // Player controlling us
+    private Player owner = null; // Player that controls us
 
     private Level level; // Level
 
@@ -58,7 +58,7 @@ public class CellMaster implements Updatable {
     private void checkNeighbor(int x, int y) {
         if (level.getCell(x, y) != null) {
             CellMaster neighbor = level.getMaster(x, y);
-            if (neighbor != this && neighbor.getColorID() == color && (neighbor.getOwner() == owner || neighbor.getOwner() == null)) {
+            if (neighbor != this && neighbor.getColorID() == color && neighbor.getOwner() == null) {
                 neighbor.merge(this); // Merging with neighbor if needed
             } else {
                 if (!neighbors.contains(neighbor) && neighbor != this) neighbors.add(neighbor);
@@ -116,7 +116,7 @@ public class CellMaster implements Updatable {
                     checkNeighbor(cell.getX() - 1, cell.getY());
                 }
             }
-        } while (newCells.size() > 0); // We should update at least one time to calculate neighbors
+        } while (newCells.size() > 0); // We should update at least one time to find neighbors
     }
 
     public void setColorID(int color) {

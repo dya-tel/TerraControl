@@ -11,8 +11,8 @@ import java.net.InetAddress;
 
 public abstract class Connection {
 
-    public static final int BUFFER_SIZE = 4096;
-    public static final int MESSAGE_SIZE = BUFFER_SIZE - 1;
+    public static final int BUFFER_SIZE = 4096; // Send/receive byte buffer size
+    public static final int MESSAGE_SIZE = BUFFER_SIZE - 1; // 1 byte is used for message code
 
     protected static final byte CODE_CONNECT = 0;
     protected static final byte CODE_DATA = 1;
@@ -22,15 +22,15 @@ public abstract class Connection {
     protected static final byte CODE_CELLS = 5;
     protected static final byte CODE_TURN = 6;
 
-    protected Debug debug;
+    protected Debug debug; // Output
 
-    protected DatagramSocket socket;
+    protected DatagramSocket socket; // UDP socket
 
-    protected Thread receiver;
-    protected boolean running = false;
+    protected Thread receiver; // Message receiver
+    protected boolean running = false; // Are we running
 
-    protected int transmitted = 0;
-    protected int received = 0;
+    protected int transmitted = 0; // Transmitter bytes
+    protected int received = 0; // Received bytes
 
     public Connection(GameWindow window) throws Exception {
         debug = window.getDebug();
@@ -52,10 +52,8 @@ public abstract class Connection {
                 while (running) {
                     try {
                         process(receive());
-                    } catch (IOException e) {
-                        debug.println("Socket closed!");
                     } catch (Exception e) {
-                        ErrorLogger.add(e);
+                        if (running) ErrorLogger.add(e);
                     }
                 }
             }
@@ -75,7 +73,6 @@ public abstract class Connection {
         } catch (InterruptedException e) {
             ErrorLogger.add(e);
         }
-        debug.println("Connection closed!");
     }
 
     protected abstract void process(DatagramPacket packet);
@@ -85,7 +82,7 @@ public abstract class Connection {
     protected void send(byte code, String message, InetAddress address, int port) {
         byte[] bytes = new byte[message.length() + 1];
         bytes[0] = code; // Adding message code
-        System.arraycopy(message.getBytes(), 0, bytes, 1, message.length()); // Moving and shifting message
+        System.arraycopy(message.getBytes(), 0, bytes, 1, message.length()); // Copying and shifting message
 
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, port);
         try {

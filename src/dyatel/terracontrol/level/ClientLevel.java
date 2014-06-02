@@ -68,11 +68,7 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
         currentColorID = -1;
         buttons.update(mouseX, mouseY); // Updating buttons
 
-        // Changing zoom by keyboard
-        if (keys[7]) changeZoom(1);
-        if (keys[8]) changeZoom(-1);
-
-        // Printing current state and mouse position
+        // Printing current state
         switch (state) {
             case -1:
                 window.statusBar[1] = "Waiting...";
@@ -90,7 +86,6 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
                 window.statusBar[1] = "Draw.";
                 break;
         }
-        window.statusBar[2] = mouseLX + " " + mouseLY;
 
         // Calculating number of cells that we can capture
         int availableCells = players[playerID].canCapture(currentColorID);

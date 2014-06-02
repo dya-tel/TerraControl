@@ -16,10 +16,11 @@ public class ButtonController {
         for (Button button : buttons) {
             button.update(); // Updating button
 
+            // Checking if mouse is on button
             int bx = button.getX();
             int by = button.getY();
             int size = Button.getSize();
-            button.setHovering(x > bx - size / 2 && x < bx + size / 2 && y > by - size / 2 && y < by + size / 2); // Checking if mouse is on button
+            button.setHovering(x > bx - size / 2 && x < bx + size / 2 && y > by - size / 2 && y < by + size / 2);
         }
     }
 
@@ -28,9 +29,7 @@ public class ButtonController {
     }
 
     public void render(Screen screen) {
-        for (Button button : buttons) {
-            button.render(screen);
-        }
+        for (Button button : buttons) button.render(screen);
     }
 
 }

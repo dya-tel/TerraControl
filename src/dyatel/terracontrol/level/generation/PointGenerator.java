@@ -14,8 +14,8 @@ public class PointGenerator extends Generator {
         // Adding masters
         int width = level.getWidth();
         int height = level.getHeight();
-        int minMasters = width * height * 1 / 5;
-        int maxMasters = width * height * 3 / 5;
+        int minMasters = width * height * 2 / 5;
+        int maxMasters = width * height * 4 / 5;
         int masters = random.nextInt(maxMasters - minMasters + 1) + minMasters;
         debug.println("Going to add " + masters + " masters");
         for (int i = 0; i < masters; i++) {
@@ -28,16 +28,7 @@ public class PointGenerator extends Generator {
         debug.println("Added " + level.getMasters().size() + " masters");
     }
 
-    public void generate(Cell[] cells) {
-        if (genStart == -1) genStart = System.currentTimeMillis();
-
-        // Checking if level is generated
-        if (isGenerated()) {
-            level.getDebug().println("Generated level in " + (System.currentTimeMillis() - genStart) + " ms");
-            onLevelGenerated();
-            return;
-        }
-
+    public void gen(Cell[] cells) {
         for (CellMaster master : level.getMasters()) master.generate(); // Generating every master
     }
 

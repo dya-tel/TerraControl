@@ -24,27 +24,30 @@ public class CellMaster implements Updatable {
 
     private boolean removed = false; // Are we removed from level
 
-    private static Random random = Util.getRandom(); // Random
+    private Random random = Util.getRandom(); // Random
 
     public CellMaster(Level level) {
         // Calling this constructor means that field is not generated and we have to add cells ourselves
-        this(random.nextInt(level.getColors().length), level);
-        level.needUpdate(this);
+        init(random.nextInt(level.getColors().length), level);
     }
 
     public CellMaster(int colorID, Level level) {
         // Calling this constructor means that field is generated and cells will add themselves
+        init(colorID, level);
+    }
+
+    private void init(int colorID, Level level) {
         color = colorID;
         this.level = level;
 
         level.add(this);
     }
 
-    public void tryToAdd(int x, int y) {
+    private void tryToAdd(int x, int y) {
         if (level.canSetCell(x, y)) new Cell(x, y, this);
     }
 
-    public void merge(CellMaster master) {
+    private void merge(CellMaster master) {
         // Updating cell lists and setting new master to each cell
         cells.addAll(newCells); // We must not ignore new cells if we haven`t been updated
         for (Cell cell : cells) cell.setMaster(master);
@@ -87,8 +90,6 @@ public class CellMaster implements Updatable {
             }
             tryToAdd(x, y);
         }
-
-        level.needUpdate(this);
     }
 
     public void update() {
@@ -145,10 +146,12 @@ public class CellMaster implements Updatable {
 
     public void addCells(ArrayList<Cell> cells) {
         newCells.addAll(cells);
+        level.needUpdate(this);
     }
 
     public void addCell(Cell cell) {
         newCells.add(cell);
+        level.needUpdate(this);
     }
 
     public ArrayList<Cell> getCells() {

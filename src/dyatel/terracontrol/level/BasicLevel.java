@@ -150,7 +150,7 @@ public abstract class BasicLevel implements Level {
     }
 
     public void needUpdate(Updatable u) {
-        needUpdate.add(u);
+        if (!needUpdate.contains(u)) needUpdate.add(u);
     }
 
     public int getCellSize() {

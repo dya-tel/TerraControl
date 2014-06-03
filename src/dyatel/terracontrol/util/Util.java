@@ -10,4 +10,11 @@ public class Util {
         return random;
     }
 
+    public static void updateRandom(String seed) {
+        if (seed.equals(""))
+            random = new Random();
+        else
+            random = new Random(seed.hashCode());
+    }
+
 }

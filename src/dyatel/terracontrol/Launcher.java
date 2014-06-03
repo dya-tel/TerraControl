@@ -4,6 +4,7 @@ import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.util.Debug;
 import dyatel.terracontrol.util.ErrorLogger;
+import dyatel.terracontrol.util.Util;
 import dyatel.terracontrol.window.Client;
 import dyatel.terracontrol.window.Server;
 import dyatel.terracontrol.window.SinglePlayer;
@@ -47,6 +48,8 @@ public class Launcher extends JFrame {
 
         final JComboBox generatorTypeBox = new JComboBox<String>(Generator.types);
 
+        final JTextField seedField = new JTextField("");
+
         final JCheckBox endAt50Check = new JCheckBox();
         endAt50Check.setHorizontalAlignment(JCheckBox.CENTER);
         endAt50Check.setSelected(true);
@@ -78,6 +81,10 @@ public class Launcher extends JFrame {
         add(new JLabel("Generator type"));
         add(new JLabel());
         add(generatorTypeBox);
+
+        add(new JLabel("Randomizer seed"));
+        add(new JLabel());
+        add(seedField);
 
         add(new JLabel("End if captured 50%"));
         add(new JLabel());
@@ -117,6 +124,9 @@ public class Launcher extends JFrame {
                         data.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
                     }
 
+                    // Resetting randomizer
+                    Util.updateRandom(seedField.getText());
+
                     new SinglePlayer(width, height, data);
                 } catch (Exception ex) {
                     debug.println("Error: wrong input!");
@@ -139,6 +149,9 @@ public class Launcher extends JFrame {
                     data.fillString("address", addressField.getText());
                     data.fillInteger("port", portField.getText());
                     data.fillInteger("cellSize", cellSizeField.getText());
+
+                    // Resetting randomizer
+                    Util.updateRandom(seedField.getText());
 
                     new Client(width, height, data);
                 } catch (Exception ex) {
@@ -170,6 +183,9 @@ public class Launcher extends JFrame {
                     for (int i = 0; i < colorsR.length; i++) {
                         data.fillInteger("color" + i, Integer.parseInt(colorsR[i], 16));
                     }
+
+                    // Resetting randomizer
+                    Util.updateRandom(seedField.getText());
 
                     new Server(width, height, data);
                 } catch (Exception ex) {

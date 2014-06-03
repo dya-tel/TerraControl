@@ -42,10 +42,6 @@ public class Launcher extends JFrame {
 
         final JTextField playersField = new JTextField("2");
 
-        final JCheckBox fastGenerationCheck = new JCheckBox();
-        fastGenerationCheck.setHorizontalAlignment(JCheckBox.CENTER);
-        fastGenerationCheck.setSelected(true);
-
         final JComboBox generatorTypeBox = new JComboBox<String>(Generator.types);
 
         final JTextField seedField = new JTextField("");

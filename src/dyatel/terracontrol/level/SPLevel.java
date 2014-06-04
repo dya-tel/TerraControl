@@ -205,10 +205,10 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
         screen.setOffset(xOff, yOff);
 
         // Render
-        int yStart = yOff / (getCellSize() + 1);
+        int yStart = Math.max(yOff / (getCellSize() + 1), 0); // Restricting min y to 0
         int yEnd = Math.min(yStart + window.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
         for (int y = yStart; y < yEnd; y++) {
-            int xStart = xOff / (getCellSize() + 1);
+            int xStart = Math.max(xOff / (getCellSize() + 1), 0); // Restricting min x to 0
             int xEnd = Math.min(xStart + window.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render

@@ -184,20 +184,36 @@ public abstract class BasicLevel implements Level {
         return -1;
     }
 
+    private int getFieldWidth() {
+        return width * (getCellSize() + 1) - 1; // Returns field width in pixels
+    }
+
+    private int getFieldHeight() {
+        return height * (getCellSize() + 1) - 1; // Returns field height in pixels
+    }
+
     public void changeXOff(int dx) {
         // Changing offset without going out of bounds
         xOff += dx;
-        if (xOff < 0) xOff = 0;
-        if (xOff + window.getWidth() > width * (getCellSize() + 1) - 1)
-            xOff = Math.max(width * (getCellSize() + 1) - 1 - window.getWidth(), 0);
+
+        // If field fits on the screen, centring it
+        int minOff = Math.min((window.getWidth() - getFieldWidth()) / -2, 0);
+        int maxOff = Math.max(getFieldWidth() - window.getWidth(), minOff);
+
+        if (xOff < minOff) xOff = minOff;
+        if (xOff > maxOff) xOff = maxOff;
     }
 
     public void changeYOff(int dy) {
         // Changing offset without going out of bounds
         yOff += dy;
-        if (yOff < 0) yOff = 0;
-        if (yOff + window.getFieldHeight() > height * (getCellSize() + 1) - 1)
-            yOff = Math.max(height * (getCellSize() + 1) - 1 - window.getFieldHeight(), 0);
+
+        // If field fits on the screen, centring it
+        int minOff = Math.min((window.getFieldHeight() - getFieldHeight()) / -2, 0);
+        int maxOff = Math.max(getFieldHeight() - window.getFieldHeight(), minOff);
+
+        if (yOff < minOff) yOff = minOff;
+        if (yOff > maxOff) yOff = maxOff;
     }
 
     public void changeZoom(int n) {

@@ -66,7 +66,6 @@ public abstract class Connection {
 
     public void stop() {
         running = false;
-        debug.println("Closing connection...");
         socket.close();
         try {
             waitForThreads();

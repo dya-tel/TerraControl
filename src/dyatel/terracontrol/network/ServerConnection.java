@@ -38,7 +38,7 @@ public class ServerConnection extends Connection {
         // Get sender
         final InetAddress address = packet.getAddress();
         final int port = packet.getPort();
-        int player = findPlayer(address, port);
+        Player player = findPlayer(address, port);
 
         // Get data from message
         final String[] dataR = message.split("x");
@@ -50,15 +50,17 @@ public class ServerConnection extends Connection {
                 debug.println("Connection request from " + packet.getAddress() + ":" + packet.getPort() + "");
 
                 // If this player isn`t connected and we have place for players
-                if (player == -1 && connected < players.length) {
-                    player = connected;
-                    players[connected++].connect(address, port);
+                if (player == null) {
+                    if (connected < players.length) {
+                        player = players[connected++];
+                        player.connect(address, port);
+                    } else return;
                 }
 
                 // Putting level data
                 String data = level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size();
                 // Putting players
-                data += "x" + players.length + "x" + player;
+                data += "x" + players.length + "x" + player.getID();
                 for (Player p : players) data += "x" + p.getMaster().getID();
                 // Putting colors into message
                 data += "x" + level.getColors().length;
@@ -66,7 +68,7 @@ public class ServerConnection extends Connection {
                     data += "x" + level.getColors()[i];
                 }
 
-                players[player].send(CODE_DATA, data);
+                player.send(CODE_DATA, data);
             }
         } else if (code == CODE_MASTERS) {
             ArrayList<CellMaster> masters = level.getMasters();
@@ -93,8 +95,8 @@ public class ServerConnection extends Connection {
             }
             send(CODE_CELLS, data, address, port);
         } else if (code == CODE_READY) {
-            if (player != -1 && !players[player].isReady()) {
-                players[player].ready();
+            if (player != null && !player.isReady()) {
+                player.ready();
 
                 if (++ready == players.length) {
                     level.setState(3);
@@ -103,15 +105,15 @@ public class ServerConnection extends Connection {
                 }
             }
         } else if (code == CODE_TURN) {
-            if (player != -1) {
+            if (player != null) {
                 int turn = Integer.parseInt(dataR[0]);
                 int colorID = Integer.parseInt(dataR[1]);
 
-                if (players[player].getTurns() == turn - 1) {
+                if (player.getTurns() == turn - 1) {
                     if (colorID != -1)
-                        players[player].addTurn(colorID);
+                        player.addTurn(colorID);
                     else
-                        players[player].incrementTurns();
+                        player.incrementTurns();
 
                     currentPlayer = nextPlayer();
                 }
@@ -127,10 +129,10 @@ public class ServerConnection extends Connection {
         this.players = players;
     }
 
-    private int findPlayer(InetAddress address, int port) {
-        if (players == null) return -1;
-        for (int i = 0; i < players.length; i++) if (players[i].equals(address, port)) return i;
-        return -1; // If did not find this player
+    private Player findPlayer(InetAddress address, int port) {
+        if (players == null) return null;
+        for (Player player : players) if (player.equals(address, port)) return player;
+        return null; // If did not find this player
     }
 
     private void sendEveryoneExcluding(byte code, String message, int exclude) {

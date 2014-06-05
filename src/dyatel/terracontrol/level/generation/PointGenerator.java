@@ -28,7 +28,7 @@ public class PointGenerator extends Generator {
         debug.println("Added " + level.getMasters().size() + " masters");
     }
 
-    public void gen(Cell[] cells) {
+    protected void gen(Cell[] cells) {
         for (CellMaster master : level.getMasters()) master.generate(); // Generating every master
     }
 

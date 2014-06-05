@@ -108,7 +108,11 @@ public class ServerConnection extends Connection {
                 int colorID = Integer.parseInt(dataR[1]);
 
                 if (players[player].getTurns() == turn - 1) {
-                    players[player].addTurn(colorID);
+                    if (colorID != -1)
+                        players[player].addTurn(colorID);
+                    else
+                        players[player].incrementTurns();
+
                     currentPlayer = nextPlayer();
                 }
             }

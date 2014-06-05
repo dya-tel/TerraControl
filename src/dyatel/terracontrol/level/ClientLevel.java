@@ -115,7 +115,10 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
     }
 
     public void needTurn() {
-        needToMakeATurn = true;
+        if (players[playerID].haveAvailableTurns())
+            needToMakeATurn = true;
+        else
+            players[playerID].incrementTurns();
     }
 
     public boolean isTurnAvailable(int color) {

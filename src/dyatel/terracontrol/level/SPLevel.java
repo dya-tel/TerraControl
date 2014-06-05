@@ -101,6 +101,50 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
         // Level generation
         if (state == 0) generator.generate(cells);
 
+        if (state == 2) {
+            // Checking if player has available turns
+            if (!players[0].haveAvailableTurns()) {
+                players[0].incrementTurns();
+                currentPlayer = nextPlayer();
+            }
+
+            // AI turn
+            if (currentPlayer != 0) {
+                if (players[currentPlayer].haveAvailableTurns()) {
+                    // Choosing best available turn
+                    int max = -1;
+                    int turn = -1;
+                    for (int i = 0; i < colors.length; i++) {
+                        int willAdd = players[currentPlayer].canCapture(i);
+                        if (willAdd > max) {
+                            max = willAdd;
+                            turn = i;
+                        }
+                    }
+
+                    // Making turn
+                    players[currentPlayer].addTurn(turn);
+                }
+                players[currentPlayer].incrementTurns();
+                currentPlayer = nextPlayer();
+            }
+
+            // Calculating number of cells that we can capture
+            int availableCells = players[0].canCapture(currentColorID);
+            window.statusBar[4] = String.valueOf(players[0].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
+
+            // Checking if level is captured
+            int cCells = 0; // Captured cells
+            for (Player player : players) {
+                int cells = player.getMaster().getCells().size();
+                if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
+                    debug.println("Captured level!");
+                    findWinner();
+                    break;
+                }
+            }
+        }
+
         // Managing mouse click
         if (mouse.isClicked()) {
             if (state == 1) {
@@ -118,40 +162,6 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
                 if (currentPlayer == 0 && currentColorID != -1 && players[0].canCapture(currentColorID) > 0) {
                     players[0].addTurn(currentColorID);
                     currentPlayer = nextPlayer();
-                }
-            }
-        }
-
-        if (state == 2) {
-            // AI turn
-            if (currentPlayer != 0) {
-                // Choosing best available turn
-                int max = -1;
-                int turn = -1;
-                for (int i = 0; i < colors.length; i++) {
-                    int willAdd = players[currentPlayer].canCapture(i);
-                    if (willAdd > max) {
-                        max = willAdd;
-                        turn = i;
-                    }
-                }
-                // Making turn
-                players[currentPlayer].addTurn(turn);
-                currentPlayer = nextPlayer();
-            }
-
-            // Calculating number of cells that we can capture
-            int availableCells = players[0].canCapture(currentColorID);
-            window.statusBar[4] = String.valueOf(players[0].getMaster().getCells().size() + (availableCells > 0 ? "(+" + availableCells + ")" : "") + " cells");
-
-            // Checking if level is captured
-            int cCells = 0; // Captured cells
-            for (Player player : players) {
-                int cells = player.getMaster().getCells().size();
-                if ((endAt50 && cells > width * height / 2) || (cCells += cells) == width * height) {
-                    debug.println("Captured level!");
-                    findWinner();
-                    break;
                 }
             }
         }

@@ -69,6 +69,10 @@ public class Player {
         return ready;
     }
 
+    public void incrementTurns() {
+        turns++;
+    }
+
     public void addTurn(int colorID) {
         master.setColorID(colorID);
         level.needUpdate(master);
@@ -96,6 +100,13 @@ public class Player {
             }
         }
         return availableCells;
+    }
+
+    public boolean haveAvailableTurns() {
+        for (int i = 0; i < level.getColors().length; i++) {
+            if (canCapture(i) > 0) return true;
+        }
+        return false;
     }
 
     public boolean equals(InetAddress address, int port) {

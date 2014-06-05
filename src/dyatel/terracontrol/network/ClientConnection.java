@@ -130,6 +130,14 @@ public class ClientConnection extends Connection {
                 int colorID = Integer.parseInt(dataR[2 + i * 2]);
                 if (colorID != -1 && turns == level.getPlayer(i).getTurns() + 1) level.getPlayer(i).addTurn(colorID);
             }
+        } else if (code == CODE_ENEMY_TURNS) {
+            // Getting enemies turns
+            for (int i = 0; i < level.getPlayers(); i++) {
+                if (i == level.getClientPlayer().getID()) continue;
+                int turns = Integer.parseInt(dataR[i * 2]);
+                int colorID = Integer.parseInt(dataR[1 + i * 2]);
+                if (colorID != -1 && turns == level.getPlayer(i).getTurns() + 1) level.getPlayer(i).addTurn(colorID);
+            }
         } else if (code == CODE_STATE) {
             int state = Integer.parseInt(message);
             level.setState(state);

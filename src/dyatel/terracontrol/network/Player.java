@@ -38,6 +38,10 @@ public class Player {
         }
     }
 
+    public int getID() {
+        return id;
+    }
+
     public CellMaster getMaster() {
         return master;
     }

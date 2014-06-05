@@ -21,6 +21,7 @@ public abstract class Connection {
     protected static final byte CODE_MASTERS = 4;
     protected static final byte CODE_CELLS = 5;
     protected static final byte CODE_TURN = 6;
+    protected static final byte CODE_ENEMY_TURNS = 7;
 
     protected Debug debug; // Output
 

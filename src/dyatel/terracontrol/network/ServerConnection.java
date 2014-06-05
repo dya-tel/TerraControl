@@ -170,17 +170,22 @@ public class ServerConnection extends Connection {
         state = 0;
         turnManager = new Thread() {
             public void run() {
+                int lastPlayer = -1; // Last player that we asked for a turn
                 currentPlayer = Util.getRandom().nextInt(players.length); // First player
                 while (running && state == 0) {
-                    String message = String.valueOf(players[currentPlayer].getTurns() + 1); // Player turn ID
+                    String message = "";
 
                     // Adding enemies turns
                     for (Player player : players) {
                         message += "x" + player.getTurns() + "x" + player.getLastTurn();
                     }
 
-                    // Sending
-                    players[currentPlayer].send(CODE_TURN, message);
+                    if (lastPlayer != currentPlayer)
+                        sendEveryoneExcluding(CODE_ENEMY_TURNS, message.substring(1), currentPlayer); // Sending everyone excluding current player turns
+
+                    // Asking current player`s turn
+                    players[currentPlayer].send(CODE_TURN, (players[currentPlayer].getTurns() + 1) + message);
+                    lastPlayer = currentPlayer;
                     try {
                         sleep(100);
                     } catch (InterruptedException e) {

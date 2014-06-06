@@ -57,11 +57,12 @@ public class ServerConnection extends Connection {
                     } else return;
                 }
 
-                // Putting level data
-                String data = level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size();
-                // Putting players
-                data += "x" + players.length + "x" + player.getID();
-                for (Player p : players) data += "x" + p.getMaster().getID();
+                // Putting level and player data
+                String data = level.getWidth() + "x" + level.getHeight() + "x" + level.getMasters().size() + "x" + players.length + "x" + player.getID();
+                for (Player p : players) {
+                    data += "x" + p.getMaster().getID();
+                }
+
                 // Putting colors into message
                 data += "x" + level.getColors().length;
                 for (int i = 0; i < level.getColors().length; i++) {

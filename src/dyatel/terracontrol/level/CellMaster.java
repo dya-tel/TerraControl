@@ -4,7 +4,6 @@ import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.util.Util;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class CellMaster implements Updatable {
 
@@ -24,10 +23,8 @@ public class CellMaster implements Updatable {
 
     private boolean removed = false; // Are we removed from level
 
-    private Random random = Util.getRandom(); // Random
-
     public CellMaster(Level level) {
-        init(random.nextInt(level.getColors().length), level);
+        init(Util.getRandom().nextInt(level.getColors().length), level);
     }
 
     public CellMaster(int colorID, Level level) {
@@ -41,52 +38,21 @@ public class CellMaster implements Updatable {
         level.add(this);
     }
 
-    private void tryToAdd(int x, int y) {
-        if (level.canSetCell(x, y)) new Cell(x, y, this);
-    }
-
     private void merge(CellMaster master) {
-        // Updating cell lists and setting new master to each cell
         cells.addAll(newCells); // We must not ignore new cells if we haven`t been updated
-        for (Cell cell : cells) cell.setMaster(master);
-
-        // Just giving cells, cause we`ll be deleted and other master already has right color and owner
-        master.addCells(cells);
+        master.addCells(cells); // Just giving cells, cause we`ll be deleted and other master already has right color and owner
 
         remove(); // Removing ourselves because we merged with other master
     }
 
     private void checkNeighbor(int x, int y) {
-        if (level.getCell(x, y) != null) {
-            CellMaster neighbor = level.getMaster(x, y);
-            if (neighbor != this && neighbor.getColorID() == color && neighbor.getOwner() == null) {
+        CellMaster neighbor = level.getMaster(x, y);
+        if (neighbor != null) {
+            if (neighbor != this && neighbor.getColorID() == color && neighbor.getOwner() == null && !neighbor.isRemoved()) {
                 neighbor.merge(this); // Merging with neighbor if needed
             } else {
                 if (!neighbors.contains(neighbor) && neighbor != this) neighbors.add(neighbor);
             }
-        }
-    }
-
-    public void generate() {
-        for (Cell cell : borderCells) {
-            // Determining where to try putting new cell
-            int x = cell.getX();
-            int y = cell.getY();
-            switch (random.nextInt(4)) {
-                case 0:
-                    x -= 1;
-                    break;
-                case 1:
-                    y -= 1;
-                    break;
-                case 2:
-                    x += 1;
-                    break;
-                case 3:
-                    y += 1;
-                    break;
-            }
-            tryToAdd(x, y);
         }
     }
 
@@ -143,17 +109,23 @@ public class CellMaster implements Updatable {
     }
 
     public void addCells(ArrayList<Cell> cells) {
+        for (Cell cell : cells) cell.setMaster(this);
         newCells.addAll(cells);
         level.needUpdate(this);
     }
 
     public void addCell(Cell cell) {
+        cell.setMaster(this);
         newCells.add(cell);
         level.needUpdate(this);
     }
 
     public ArrayList<Cell> getCells() {
         return cells;
+    }
+
+    public ArrayList<Cell> getBorderCells() {
+        return borderCells;
     }
 
     public boolean isNeighbor(CellMaster master) {
@@ -170,6 +142,7 @@ public class CellMaster implements Updatable {
 
     public void remove() {
         removed = true;
+        level.needUpdate(this); // We need an update cause level should remove us from lists
     }
 
     public boolean isRemoved() {

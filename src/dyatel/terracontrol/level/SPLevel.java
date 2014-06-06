@@ -97,7 +97,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
         }
 
         // Level generation
-        if (state == 0) generator.generate(cells);
+        if (state == 0) generator.generate();
 
         if (state == 2) {
             // Checking if player has available turns
@@ -194,10 +194,6 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
             else
                 state = 5;
         }
-    }
-
-    public Cell[] getCells() {
-        return cells;
     }
 
     public boolean isTurnAvailable(int color) {

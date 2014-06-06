@@ -9,10 +9,11 @@ public class FillGenerator extends Generator {
         super(level);
     }
 
-    protected void gen(Cell[] cells) {
+    protected void gen() {
         // Filling whole field with masters
         int width = level.getWidth();
-        for (int i = 0; i < cells.length; i++) {
+        int height = level.getHeight();
+        for (int i = 0; i < width * height; i++) {
             new Cell(i % width, i / width, new CellMaster(level));
         }
     }

@@ -1,6 +1,5 @@
 package dyatel.terracontrol.level.generation;
 
-import dyatel.terracontrol.level.Cell;
 import dyatel.terracontrol.level.CellMaster;
 import dyatel.terracontrol.util.Util;
 
@@ -22,7 +21,7 @@ public abstract class Generator {
         level.getDebug().println("Using \"" + getName() + "\" generator");
     }
 
-    public final void generate(Cell[] cells) {
+    public final void generate() {
         if (genStart == -1) genStart = System.currentTimeMillis();
 
         // Checking if level is generated
@@ -32,11 +31,11 @@ public abstract class Generator {
             return;
         }
 
-        gen(cells);
+        gen();
     }
 
     // Generation algorithm
-    protected abstract void gen(Cell[] cells);
+    protected abstract void gen();
 
     protected void onLevelGenerated() {
         ArrayList<CellMaster> masters = level.getMasters();

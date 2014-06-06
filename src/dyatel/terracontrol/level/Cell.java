@@ -14,8 +14,6 @@ public class Cell {
         this.x = x;
         this.y = y;
 
-        this.master = master;
-
         level = master.getLevel(); // Getting level
         level.setCell(this); // Adding us to level
 

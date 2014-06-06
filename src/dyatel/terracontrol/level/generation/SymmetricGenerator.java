@@ -9,7 +9,7 @@ public class SymmetricGenerator extends Generator {
         super(level);
     }
 
-    protected void gen(Cell[] cells) {
+    protected void gen() {
         int width = level.getWidth();
         int height = level.getHeight();
         int segmentWidth = width / 2;

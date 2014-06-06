@@ -82,7 +82,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         }
 
         // Level generation
-        if (state == 0) generator.generate(cells);
+        if (state == 0) generator.generate();
 
         // Placing players
         if (mouse.isClicked() && state == 1) {
@@ -118,10 +118,6 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
 
     public boolean isGenerated() {
         return state > 0;
-    }
-
-    public Cell[] getCells() {
-        return cells;
     }
 
     public void preRender(Screen screen) {

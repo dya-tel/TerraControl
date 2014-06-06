@@ -27,7 +27,7 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
         super(window);
     }
 
-    public void init(DataArray data) {
+    protected void preInit(DataArray data) {
         width = data.getInteger("levelWidth");
         height = data.getInteger("levelHeight");
         cells = new Cell[width * height];
@@ -58,8 +58,6 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
             int offset = (window.getHeight() - window.getFieldHeight()) / 2;
             new TurnButton(offset + buttonSpacing * i, window.getFieldHeight() + offset, colors[i], buttons, this);
         }
-
-        initialized = true;
     }
 
     protected void sideUpdate() {

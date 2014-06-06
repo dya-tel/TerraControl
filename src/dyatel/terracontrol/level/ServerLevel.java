@@ -24,7 +24,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         init(data);
     }
 
-    public void init(DataArray data) {
+    protected void preInit(DataArray data) {
         width = data.getInteger("levelWidth");
         height = data.getInteger("levelHeight");
         cells = new Cell[width * height];
@@ -42,8 +42,6 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         endAt50 = data.getBoolean("endAt50");
 
         state = 0;
-
-        initialized = true;
     }
 
     protected void sideUpdate() {

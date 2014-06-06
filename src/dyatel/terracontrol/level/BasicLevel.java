@@ -57,7 +57,13 @@ public abstract class BasicLevel implements Level {
         needUpdate = new ArrayList<Updatable>();
     }
 
-    public abstract void init(DataArray data);
+    public final void init(DataArray data) {
+        preInit(data);
+
+        initialized = true;
+    }
+
+    protected abstract void preInit(DataArray data);
 
     public final void update() {
         // Updating input

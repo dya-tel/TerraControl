@@ -23,8 +23,8 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
 
     protected boolean needToMakeATurn = false; // True if it is client`s turn
 
-    public ClientLevel(int cellSize, GameWindow window) {
-        super(cellSize, window);
+    public ClientLevel(GameWindow window) {
+        super(window);
     }
 
     public void init(DataArray data) {

@@ -22,7 +22,7 @@ public abstract class BasicLevel implements Level {
     protected int xOff, yOff; // Level offset
     protected int scrollRate = 10; // Pixels per update
 
-    protected int cellSize; // Cell side in pixels
+    protected int cellSize = 2; // Cell side in pixels
     protected double zoom = 1; // Zoom
 
     protected int width, height; // Level size in cells
@@ -44,9 +44,7 @@ public abstract class BasicLevel implements Level {
 
     protected int[] colors; // Available colors for cells
 
-    protected BasicLevel(int cellSize, GameWindow window) {
-        this.cellSize = cellSize;
-
+    protected BasicLevel(GameWindow window) {
         this.window = window;
         debug = window.getDebug();
 
@@ -217,17 +215,24 @@ public abstract class BasicLevel implements Level {
     }
 
     public void changeZoom(int n) {
-        if (cellSize * (zoom + n * 0.5d) < 1) return; // Ignoring if zoomed too much
+        // Checking if field fits and we don`t need to zoom it further
+        if (n == -1 && getFieldWidth() <= window.getWidth() && getFieldHeight() <= window.getFieldHeight()) return;
 
-        double pZoom = zoom; // Previous zoom
+        double pZoom = zoom; // Saving previous zoom
         zoom += n * 0.5d;
 
-        int diff = (int) ((cellSize * zoom) - (cellSize * pZoom)); // Cell size change
+        // Checking if zoomed too much
+        if (getCellSize() < 1) {
+            zoom = pZoom;
+            return;
+        }
+
+        double diff = ((cellSize * zoom) - (cellSize * pZoom)); // Cell size change
         // How many cells changed their size
         int cellsX = (int) ((xOff + window.getWidth() / 2) / ((cellSize * pZoom) + 1));
         int cellsY = (int) ((yOff + window.getFieldHeight() / 2) / ((cellSize * pZoom) + 1));
-        changeXOff(cellsX * diff); // Centring x offset
-        changeYOff(cellsY * diff); // Centring y offset
+        changeXOff((int) (cellsX * diff)); // Centring x offset
+        changeYOff((int) (cellsY * diff)); // Centring y offset
     }
 
     public Debug getDebug() {

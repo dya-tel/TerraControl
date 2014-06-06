@@ -19,7 +19,7 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
     private boolean endAt50; // True if game will end when someone captures at least 50% of level
 
     public ServerLevel(DataArray data, GameWindow window) {
-        super(data.getInteger("cellSize"), window);
+        super(window);
 
         init(data);
     }

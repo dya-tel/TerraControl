@@ -20,7 +20,7 @@ public class Client extends GameWindow {
 
         // Initialization goes here
         screen = new Screen(width, height);
-        level = new ClientLevel(data.getInteger("cellSize"), this);
+        level = new ClientLevel(this);
         connection = new ClientConnection(data.getString("address"), data.getInteger("port"), this);
 
         // Creating main loop

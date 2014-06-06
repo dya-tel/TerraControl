@@ -38,8 +38,6 @@ public class Launcher extends JFrame {
         final JTextField addressField = new JTextField("localhost");
         final JTextField portField = new JTextField("8192");
 
-        final JTextField cellSizeField = new JTextField("8");
-
         final JTextField playersField = new JTextField("2");
 
         final JComboBox generatorTypeBox = new JComboBox<String>(Generator.types);
@@ -65,10 +63,6 @@ public class Launcher extends JFrame {
         add(new JLabel("Address"));
         add(addressField);
         add(portField);
-
-        add(new JLabel("Cell size"));
-        add(new JLabel());
-        add(cellSizeField);
 
         add(new JLabel("Players"));
         add(new JLabel());
@@ -108,7 +102,6 @@ public class Launcher extends JFrame {
                     DataArray data = new DataArray();
                     data.fillInteger("levelWidth", levelWidthField.getText());
                     data.fillInteger("levelHeight", levelHeightField.getText());
-                    data.fillInteger("cellSize", cellSizeField.getText());
                     data.fillInteger("players", playersField.getText());
                     data.fillString("generatorType", (String) generatorTypeBox.getSelectedItem());
                     data.fillBoolean("endAt50", endAt50Check.isSelected());
@@ -144,7 +137,6 @@ public class Launcher extends JFrame {
                     DataArray data = new DataArray();
                     data.fillString("address", addressField.getText());
                     data.fillInteger("port", portField.getText());
-                    data.fillInteger("cellSize", cellSizeField.getText());
 
                     // Resetting randomizer
                     Util.updateRandom(seedField.getText());
@@ -169,7 +161,6 @@ public class Launcher extends JFrame {
                     data.fillInteger("port", portField.getText());
                     data.fillInteger("levelWidth", levelWidthField.getText());
                     data.fillInteger("levelHeight", levelHeightField.getText());
-                    data.fillInteger("cellSize", cellSizeField.getText());
                     data.fillInteger("players", playersField.getText());
                     data.fillString("generatorType", (String) generatorTypeBox.getSelectedItem());
                     data.fillBoolean("endAt50", endAt50Check.isSelected());

@@ -32,7 +32,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
     private int currentColorID; // Chosen color array index
 
     public SPLevel(DataArray data, GameWindow window) {
-        super(data.getInteger("cellSize"), window);
+        super(window);
 
         init(data);
     }

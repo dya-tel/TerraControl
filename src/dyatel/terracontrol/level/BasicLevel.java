@@ -22,8 +22,9 @@ public abstract class BasicLevel implements Level {
     protected int xOff, yOff; // Level offset
     protected int scrollRate = 10; // Pixels per update
 
-    protected int cellSize = 2; // Cell side in pixels
-    protected double zoom = 1; // Zoom
+    protected int cellSize; // Cell side in pixels
+    protected double zoom; // Zoom
+    protected double zoomStep = 0.5; // Zoom change
 
     protected int width, height; // Level size in cells
 
@@ -59,6 +60,17 @@ public abstract class BasicLevel implements Level {
 
     public final void init(DataArray data) {
         preInit(data);
+
+        // Zooming level to match window size
+        cellSize = 2;
+        zoom = zoomStep;
+        while (getFieldWidth() <= window.getWidth() && getFieldHeight() <= window.getFieldHeight()) {
+            zoom += zoomStep;
+        }
+        if (zoom > zoomStep) zoom -= zoomStep;
+
+        // Finding right offset
+        correctOffset();
 
         initialized = true;
     }
@@ -199,25 +211,26 @@ public abstract class BasicLevel implements Level {
     public void changeXOff(int dx) {
         // Changing offset without going out of bounds
         xOff += dx;
-
-        // If field fits on the screen, centring it
-        int minOff = Math.min((window.getWidth() - getFieldWidth()) / -2, 0);
-        int maxOff = Math.max(getFieldWidth() - window.getWidth(), minOff);
-
-        if (xOff < minOff) xOff = minOff;
-        if (xOff > maxOff) xOff = maxOff;
+        correctOffset();
     }
 
     public void changeYOff(int dy) {
         // Changing offset without going out of bounds
         yOff += dy;
+        correctOffset();
+    }
 
-        // If field fits on the screen, centring it
-        int minOff = Math.min((window.getFieldHeight() - getFieldHeight()) / -2, 0);
-        int maxOff = Math.max(getFieldHeight() - window.getFieldHeight(), minOff);
+    private void correctOffset() {
+        // Checking bounds and if field fits on the screen, centring it
+        int minXOff = Math.min((window.getWidth() - getFieldWidth()) / -2, 0);
+        int maxXOff = Math.max(getFieldWidth() - window.getWidth(), minXOff);
+        if (xOff < minXOff) xOff = minXOff;
+        if (xOff > maxXOff) xOff = maxXOff;
 
-        if (yOff < minOff) yOff = minOff;
-        if (yOff > maxOff) yOff = maxOff;
+        int minYOff = Math.min((window.getFieldHeight() - getFieldHeight()) / -2, 0);
+        int maxYOff = Math.max(getFieldHeight() - window.getFieldHeight(), minYOff);
+        if (yOff < minYOff) yOff = minYOff;
+        if (yOff > maxYOff) yOff = maxYOff;
     }
 
     public void changeZoom(int n) {
@@ -225,7 +238,7 @@ public abstract class BasicLevel implements Level {
         if (n == -1 && getFieldWidth() <= window.getWidth() && getFieldHeight() <= window.getFieldHeight()) return;
 
         double pZoom = zoom; // Saving previous zoom
-        zoom += n * 0.5d;
+        zoom += n * zoomStep;
 
         // Checking if zoomed too much
         if (getCellSize() < 1) {

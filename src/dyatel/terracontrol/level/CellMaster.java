@@ -27,12 +27,10 @@ public class CellMaster implements Updatable {
     private Random random = Util.getRandom(); // Random
 
     public CellMaster(Level level) {
-        // Calling this constructor means that field is not generated and we have to add cells ourselves
         init(random.nextInt(level.getColors().length), level);
     }
 
     public CellMaster(int colorID, Level level) {
-        // Calling this constructor means that field is generated and cells will add themselves
         init(colorID, level);
     }
 

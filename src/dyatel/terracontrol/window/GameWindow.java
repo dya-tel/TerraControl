@@ -13,6 +13,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 
 public abstract class GameWindow extends Canvas implements Runnable {
 
@@ -158,7 +160,39 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
     protected abstract void update();
 
-    protected abstract void render();
+    protected final void render() {
+        BufferStrategy bs = getBufferStrategy();
+        if (bs == null) {
+            createBufferStrategy(3);
+            return;
+        }
+
+        Graphics g = bs.getDrawGraphics();
+
+        level.preRender(screen);
+
+        // Interface background
+        screen.render(0, height - statusBarHeight, width, height, 0xffffff, false);
+
+        level.postRender(screen);
+
+        screen.draw(g);
+
+        // Status bar
+        g.setColor(Color.BLACK);
+        g.setFont(font);
+        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        FontMetrics fm = image.getGraphics().getFontMetrics(font);
+        g.drawString(statusBar[0], 2, height - 28);
+        g.drawString(statusBar[1], (width - fm.stringWidth(statusBar[1])) / 2, height - 28);
+        g.drawString(statusBar[2], width - fm.stringWidth(statusBar[2]) - 2, height - 28);
+        g.drawString(statusBar[3], 2, height - 8);
+        g.drawString(statusBar[4], (width - fm.stringWidth(statusBar[4])) / 2, height - 8);
+        g.drawString(statusBar[5], width - fm.stringWidth(statusBar[5]) - 2, height - 8);
+
+        g.dispose();
+        bs.show();
+    }
 
     public int getWidth() {
         return width;

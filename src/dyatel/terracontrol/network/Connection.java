@@ -30,8 +30,7 @@ public abstract class Connection {
     protected Thread receiver; // Message receiver
     protected boolean running = false; // Are we running
 
-    protected int transmitted = 0; // Transmitter bytes
-    protected int received = 0; // Received bytes
+    protected int traffic = 0; // Transmitted and received bytes
 
     public Connection(GameWindow window) throws Exception {
         debug = window.getDebug();
@@ -87,7 +86,7 @@ public abstract class Connection {
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, port);
         try {
             socket.send(packet);
-            transmitted += packet.getLength();
+            traffic += packet.getLength();
         } catch (IOException e) {
             ErrorLogger.add(e);
         }
@@ -97,24 +96,16 @@ public abstract class Connection {
         byte[] buffer = new byte[BUFFER_SIZE];
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         socket.receive(packet);
-        received += packet.getLength();
+        traffic += packet.getLength();
         return packet;
     }
 
-    public String getTransmitted() {
-        if (transmitted / 1024 > 0) {
-            if (transmitted / 1024 / 1024 > 0) {
-                return (int) ((transmitted / 1024d / 1024) * 10) / 10 + " MB";
-            } else return (int) (transmitted / 1024d * 10) / 10 + " KB";
-        } else return transmitted + " bytes";
-    }
-
-    public String getReceived() {
-        if (received / 1024 > 0) {
-            if (received / 1024 / 1024 > 0) {
-                return (int) ((received / 1024d / 1024) * 10) / 10 + " MB";
-            } else return (int) (received / 1024d * 10) / 10 + " KB";
-        } else return received + " bytes";
+    public String getTraffic() {
+        if (traffic / 1024 > 0) {
+            if (traffic / 1024 / 1024 > 0) {
+                return (int) ((traffic / 1024d / 1024) * 100) / 100d + " MB";
+            } else return (int) (traffic / 1024d * 100) / 100d + " KB";
+        } else return traffic + " bytes";
     }
 
 }

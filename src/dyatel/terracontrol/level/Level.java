@@ -7,7 +7,9 @@ public interface Level {
 
     public void update();
 
-    public void render(Screen screen);
+    public void preRender(Screen screen);
+
+    public void postRender(Screen screen);
 
     public boolean canSetCell(int x, int y);
 

@@ -206,6 +206,8 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
     }
 
     public void preRender(Screen screen) {
+        if (!initialized) return;
+
         screen.setOffset(xOff, yOff);
 
         // Render
@@ -232,6 +234,7 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
     }
 
     public void postRender(Screen screen) {
+        if (!initialized) return;
         buttons.render(screen);
     }
 

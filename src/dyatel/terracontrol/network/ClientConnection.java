@@ -54,7 +54,7 @@ public class ClientConnection extends Connection {
         if (code == CODE_DATA) {
             if (!connected) {
                 debug.println("Connected!");
-                window.statusBar[0] = "";
+                window.statusBar[1] = "";
 
                 // Placing data into data wrapper
                 DataArray data = new DataArray();
@@ -99,7 +99,7 @@ public class ClientConnection extends Connection {
                     receivedMasters++;
                 }
             }
-            window.statusBar[0] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
+            window.statusBar[1] = "Masters: " + receivedMasters * 100 / masters.size() + "%";
         } else if (code == CODE_CELLS) {
             ArrayList<CellMaster> masters = level.getMasters();
             int width = level.getWidth();
@@ -114,7 +114,7 @@ public class ClientConnection extends Connection {
                     receivedCells++;
                 }
             }
-            window.statusBar[0] = "Cells: " + receivedCells * 100 / cells + "%";
+            window.statusBar[1] = "Cells: " + receivedCells * 100 / cells + "%";
         } else if (code == CODE_TURN) {
             int turn = Integer.parseInt(dataR[0]);
             // Making out turn
@@ -191,7 +191,7 @@ public class ClientConnection extends Connection {
                     }
                 }
 
-                window.statusBar[0] = "";
+                window.statusBar[1] = "Waiting...";
                 level.ready();
                 send(CODE_READY, "");
             }

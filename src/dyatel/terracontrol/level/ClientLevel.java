@@ -68,9 +68,6 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
 
         // Printing current state
         switch (state) {
-            case -1:
-                window.statusBar[1] = "Waiting...";
-                break;
             case 0:
                 window.statusBar[1] = needToMakeATurn ? "Your move!" : "Wait...";
                 break;
@@ -84,6 +81,9 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
                 window.statusBar[1] = "Draw.";
                 break;
         }
+
+        // Printing sent/received data in the status bar
+        window.statusBar[5] = window.getConnection().getTraffic();
 
         // Calculating number of cells that we can capture
         int availableCells = players[playerID].canCapture(currentColorID);
@@ -129,13 +129,15 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
     }
 
     public void preRender(Screen screen) {
+        if (!initialized) return;
+
         screen.setOffset(xOff, yOff);
 
         // Render
-        int yStart = yOff / (getCellSize() + 1);
+        int yStart = Math.max(yOff / (getCellSize() + 1), 0); // Restricting min y to 0
         int yEnd = Math.min(yStart + window.getFieldHeight() / ((getCellSize() + 1) - 1) + 1, height); // Restricting max y to height
         for (int y = yStart; y < yEnd; y++) {
-            int xStart = xOff / (getCellSize() + 1);
+            int xStart = Math.max(xOff / (getCellSize() + 1), 0); // Restricting min x to 0
             int xEnd = Math.min(xStart + window.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
@@ -155,6 +157,8 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
     }
 
     public void postRender(Screen screen) {
+        if (!initialized) return;
+
         buttons.render(screen);
     }
 }

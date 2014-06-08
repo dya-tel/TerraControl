@@ -14,7 +14,7 @@ public abstract class Generator {
 
     protected long genStart = -1; // System time at the moment of first generate() call
 
-    public static final String[] types = {"Fill", "Point", "Symmetric"}; // All available generators
+    public static final String[] types = {"Fill", "Point", "Symmetric", "Linear"}; // All available generators
 
     public Generator(GeneratableLevel level) {
         this.level = level;
@@ -68,6 +68,7 @@ public abstract class Generator {
         if (string.equals("Fill")) return new FillGenerator(level);
         if (string.equals("Point")) return new PointGenerator(level);
         if (string.equals("Symmetric")) return new SymmetricGenerator(level);
+        if (string.equals("Linear")) return new LinearGenerator(level);
         return null; // If found nothing
     }
 

@@ -75,7 +75,6 @@ public class Player {
 
     public void addTurn(int colorID) {
         master.setColorID(colorID);
-        level.needUpdate(master);
 
         lastTurn = colorID;
         turns++;

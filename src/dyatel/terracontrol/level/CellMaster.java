@@ -86,6 +86,7 @@ public class CellMaster implements Updatable {
 
     public void setColorID(int color) {
         this.color = color;
+        level.needUpdate(this);
     }
 
     public int getColorID() {

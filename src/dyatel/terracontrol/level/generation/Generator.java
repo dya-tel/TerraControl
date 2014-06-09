@@ -38,12 +38,16 @@ public abstract class Generator {
     protected abstract void gen();
 
     protected void onLevelGenerated() {
+        level.getWindow().statusBar[1] = "Calculating borders";
+        level.getWindow().render();
+
         ArrayList<CellMaster> masters = level.getMasters();
         for (int i = 0; i < masters.size(); i++) {
             CellMaster master = masters.get(i);
             master.setID(i); // Setting ID to master
             level.needUpdate(master); // Updating master to calculate borders and find neighbors
         }
+
         level.onLevelGenerated(); // Saying level that we are done
     }
 

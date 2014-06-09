@@ -245,6 +245,10 @@ public abstract class BasicLevel implements Level {
         changeYOff((int) (cellsY * diff)); // Centring y offset
     }
 
+    public GameWindow getWindow() {
+        return window;
+    }
+
     public Debug getDebug() {
         return debug;
     }

@@ -5,6 +5,8 @@ import dyatel.terracontrol.level.CellMaster;
 
 public class FillGenerator extends Generator {
 
+    private int y = 0;
+
     public FillGenerator(GeneratableLevel level) {
         super(level);
     }
@@ -13,9 +15,12 @@ public class FillGenerator extends Generator {
         // Filling whole field with masters
         int width = level.getWidth();
         int height = level.getHeight();
-        for (int i = 0; i < width * height; i++) {
-            new Cell(i % width, i / width, new CellMaster(level));
+
+        for (int x = 0; x < width; x++) {
+            new Cell(x, y, new CellMaster(level));
         }
+
+        if (y < height - 1) y++;
     }
 
     public String getName() {

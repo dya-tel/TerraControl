@@ -160,7 +160,7 @@ public abstract class GameWindow extends Canvas implements Runnable {
 
     protected abstract void update();
 
-    protected final void render() {
+    public final void render() {
         BufferStrategy bs = getBufferStrategy();
         if (bs == null) {
             createBufferStrategy(3);

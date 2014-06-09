@@ -1,6 +1,7 @@
 package dyatel.terracontrol.level;
 
 import dyatel.terracontrol.util.Debug;
+import dyatel.terracontrol.window.GameWindow;
 import dyatel.terracontrol.window.Screen;
 
 public interface Level {
@@ -32,6 +33,8 @@ public interface Level {
     public int[] getColors();
 
     public void changeZoom(int n);
+
+    public GameWindow getWindow();
 
     public Debug getDebug();
 

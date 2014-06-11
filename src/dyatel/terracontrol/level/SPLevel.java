@@ -31,6 +31,8 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
     private int currentColor; // Chosen color
     private int currentColorID; // Chosen color array index
 
+    private int colorFading = 0; // Number to subtract from color for fading
+
     public SPLevel(DataArray data, GameWindow window) {
         super(window);
 
@@ -94,6 +96,11 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
             case 5:
                 window.statusBar[1] = "Draw.";
                 break;
+        }
+
+        if (state > 2) {
+            if (colorFading < 0xff) colorFading += 4;
+            return;
         }
 
         // Level generation
@@ -177,12 +184,19 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
         // Find winner
         int max = -1; // Max captured cells
         int same = 0; // Needed to determine draw
+        Player winner = null;
         for (Player player : players) {
             int cells = player.getMaster().getCells().size();
-            if (cells > max) {
-                max = cells;
-                same = 0;
-            } else if (cells == max) same++;
+            if (cells >= max) {
+                if (winner != null) winner.setIsWinner(false);
+                winner = player;
+                winner.setIsWinner(true);
+
+                if (cells > max) {
+                    max = cells;
+                    same = 0;
+                } else if (cells == max) same++;
+            }
         }
         // Determining result
         int cells = players[0].getMaster().getCells().size(); // Player`s cells
@@ -223,7 +237,11 @@ public class SPLevel extends BasicLevel implements GeneratableLevel, TurnableLev
                 // Calculating color
                 int color = Color.subtract(colors[master.getColorID()], 0xaa, 0xaa, 0xaa);
                 if (currentColorID == -1 || state != 2) {
-                    color = colors[master.getColorID()];
+                    if (state > 2 && (master.getOwner() == null || !master.getOwner().isWinner())) {
+                        color = Color.subtract(colors[master.getColorID()], colorFading, colorFading, colorFading);
+                    } else {
+                        color = colors[master.getColorID()];
+                    }
                 } else if (players[0] != null && (master.getOwner() == players[0] || (master.getOwner() == null && players[0].getMaster().isNeighbor(master) && master.getColorID() == currentColorID))) {
                     color = currentColor;
                 }

@@ -140,12 +140,19 @@ public class ServerConnection extends Connection {
         // Find winner
         int max = -1; // Max captured cells
         int same = 0; // Needed to determine draw
+        Player winner = null; // Player that won the game
         for (Player player : players) {
             int cells = player.getMaster().getCells().size();
-            if (cells > max) {
-                max = cells;
-                same = 0;
-            } else if (cells == max) same++;
+            if (cells >= max) {
+                if (winner != null) winner.setIsWinner(false);
+                winner = player;
+                winner.setIsWinner(true);
+
+                if (cells > max) {
+                    max = cells;
+                    same = 0;
+                } else if (cells == max) same++;
+            }
         }
         // Send result to every player
         for (Player player : players) {

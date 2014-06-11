@@ -4,6 +4,7 @@ import dyatel.terracontrol.level.generation.GeneratableLevel;
 import dyatel.terracontrol.level.generation.Generator;
 import dyatel.terracontrol.network.Player;
 import dyatel.terracontrol.network.ServerConnection;
+import dyatel.terracontrol.util.Color;
 import dyatel.terracontrol.util.DataArray;
 import dyatel.terracontrol.window.GameWindow;
 import dyatel.terracontrol.window.Screen;
@@ -17,6 +18,8 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
     private int placedPlayers = 0; // How many players we have placed already
 
     private boolean endAt50; // True if game will end when someone captures at least 50% of level
+
+    private int colorFading = 0; // Number to subtract from color for fading
 
     public ServerLevel(DataArray data, GameWindow window) {
         super(window);
@@ -84,6 +87,11 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
         // Printing sent/received data in the status bar
         window.statusBar[5] = window.getConnection().getTraffic();
 
+        if (state == 4) {
+            if (colorFading < 0xff) colorFading += 4;
+            return;
+        }
+
         // Level generation
         if (state == 0) generator.generate();
 
@@ -136,7 +144,13 @@ public class ServerLevel extends BasicLevel implements GeneratableLevel {
             int xEnd = Math.min(xStart + window.getWidth() / ((getCellSize() + 1) - 1) + 1, width); // Restricting max x to width
             for (int x = xStart; x < xEnd; x++) {
                 if (cells[x + y * width] == null) continue; // Return if there is nothing to render
-                cells[x + y * width].render(screen, colors[getMaster(x, y).getColorID()]); // Rendering
+                CellMaster master = getMaster(x, y);
+
+                int color = colors[getMaster(x, y).getColorID()];
+                if (master.getOwner() == null || !master.getOwner().isWinner())
+                    color = Color.subtract(color, colorFading, colorFading, colorFading);
+
+                cells[x + y * width].render(screen, color); // Rendering
             }
         }
     }

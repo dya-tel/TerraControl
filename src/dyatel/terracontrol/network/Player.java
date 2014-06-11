@@ -24,6 +24,8 @@ public class Player {
     private int turns = 0; // How many turns we made
     private int lastTurn = -1; // Last color ID
 
+    private boolean isWinner = false; // Did this player win the game
+
     public Player(CellMaster master, int id, Connection connection) {
         this.id = id;
         this.connection = connection;
@@ -86,6 +88,14 @@ public class Player {
 
     public int getLastTurn() {
         return lastTurn;
+    }
+
+    public boolean isWinner() {
+        return isWinner;
+    }
+
+    public void setIsWinner(boolean isWinner) {
+        this.isWinner = isWinner;
     }
 
     public int canCapture(int colorID) {

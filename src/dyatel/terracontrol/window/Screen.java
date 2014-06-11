@@ -13,8 +13,6 @@ public class Screen {
     private BufferedImage image;
     private int[] pixels;
 
-    public static int emptyPixelColor = 0x333333;
-
     public Screen(int width, int height) {
         this.width = width;
         this.height = height;
@@ -31,15 +29,11 @@ public class Screen {
             x2 -= xOffset;
             y2 -= yOffset;
         }
-        for (int yCur = y1; yCur < y2; yCur++) {
-            if (yCur >= height || yCur < 0) {
-                continue;
-            }
-            for (int xCur = x1; xCur < x2; xCur++) {
-                if (xCur >= width || xCur < 0) {
-                    continue;
-                }
 
+        for (int yCur = y1; yCur < y2; yCur++) {
+            if (yCur >= height || yCur < 0) continue;
+            for (int xCur = x1; xCur < x2; xCur++) {
+                if (xCur >= width || xCur < 0) continue;
                 pixels[xCur + yCur * width] = color;
             }
         }
@@ -54,9 +48,7 @@ public class Screen {
         g.drawImage(image, 0, 0, null);
 
         // Clearing buffer
-        for (int i = 0; i < pixels.length; i++) {
-            pixels[i] = emptyPixelColor;
-        }
+        for (int i = 0; i < pixels.length; i++) pixels[i] = 0;
     }
 
 }

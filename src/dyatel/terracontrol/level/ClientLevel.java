@@ -23,6 +23,8 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
 
     protected boolean needToMakeATurn = false; // True if it is client`s turn
 
+    private int colorFading = 0; // Number to subtract from color for fading
+
     public ClientLevel(GameWindow window) {
         super(window);
     }
@@ -80,6 +82,11 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
             case 3:
                 window.statusBar[1] = "Draw.";
                 break;
+        }
+
+        if (state > 0) {
+            if (colorFading < 0xff) colorFading += 4;
+            return;
         }
 
         // Printing sent/received data in the status bar
@@ -145,8 +152,12 @@ public class ClientLevel extends BasicLevel implements TurnableLevel {
 
                 // Calculating color
                 int color = Color.subtract(colors[master.getColorID()], 0xaa, 0xaa, 0xaa);
-                if (currentColorID == -1) {
-                    color = colors[master.getColorID()];
+                if (currentColorID == -1 || state != 0) {
+                    if (state > 0 && (master.getOwner() == null || !master.getOwner().isWinner())) {
+                        color = Color.subtract(colors[master.getColorID()], colorFading, colorFading, colorFading);
+                    } else {
+                        color = colors[master.getColorID()];
+                    }
                 } else if (master.getOwner() == players[playerID] || (master.getOwner() == null && players[playerID].getMaster().isNeighbor(master) && master.getColorID() == currentColorID)) {
                     color = currentColor;
                 }

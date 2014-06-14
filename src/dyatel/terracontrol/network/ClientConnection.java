@@ -139,8 +139,14 @@ public class ClientConnection extends Connection {
                 if (colorID != -1 && turns == level.getPlayer(i).getTurns() + 1) level.getPlayer(i).addTurn(colorID);
             }
         } else if (code == CODE_STATE) {
-            int state = Integer.parseInt(message);
+            int state = Integer.parseInt(dataR[0]);
             level.setState(state);
+            if (state > 0) {
+                // Parsing winners when game ends
+                for (int i = 1; i < dataR.length; i++) {
+                    level.getPlayer(Integer.parseInt(dataR[i])).setIsWinner(true);
+                }
+            }
         } else debug.println("Unknown code " + code);
     }
 

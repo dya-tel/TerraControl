@@ -154,16 +154,21 @@ public class ServerConnection extends Connection {
                 } else if (cells == max) same++;
             }
         }
+
+        String winners = "";
+        for (int i = 0; i < players.length; i++) {
+            if (players[i].isWinner()) winners += "x" + i;
+        }
         // Send result to every player
         for (Player player : players) {
             int cells = player.getMaster().getCells().size();
             if (cells < max) {
-                player.send(CODE_STATE, "2");
+                player.send(CODE_STATE, "2" + winners);
             } else if (cells == max) {
                 if (same == 0)
-                    player.send(CODE_STATE, "1");
+                    player.send(CODE_STATE, "1" + winners);
                 else
-                    player.send(CODE_STATE, "3");
+                    player.send(CODE_STATE, "3" + winners);
             }
         }
         state = 1;

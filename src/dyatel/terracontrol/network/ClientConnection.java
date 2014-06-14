@@ -44,7 +44,7 @@ public class ClientConnection extends Connection {
     protected void process(DatagramPacket packet) {
         // Get message
         final byte code = packet.getData()[0];
-        final String message = new String(packet.getData()).trim();
+        final String message = new String(packet.getData(), 1, packet.getLength() - 1).trim();
 
         // Get data from message
         final String[] dataR = message.split("x");

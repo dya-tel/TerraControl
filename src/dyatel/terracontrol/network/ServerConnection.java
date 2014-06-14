@@ -33,7 +33,7 @@ public class ServerConnection extends Connection {
     protected void process(final DatagramPacket packet) {
         // Get message
         final byte code = packet.getData()[0];
-        final String message = new String(packet.getData()).trim();
+        final String message = new String(packet.getData(), 1, packet.getLength() - 1).trim();
 
         // Get sender
         final InetAddress address = packet.getAddress();

@@ -1,3 +1,8 @@
+Development stopped.
+--------------------
+Also this file is outdated. I'm too lazy to fix it.
+----------------------------------------------
+
 TerraControl
 ============
 Remake of Monsterra.
